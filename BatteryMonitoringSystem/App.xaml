@@ -1,0 +1,13 @@
+﻿<Application x:Class="BatteryMonitoringSystem.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:BatteryMonitoringSystem"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <Storyboard x:Key="MoveSideMenuStoryboard" FillBehavior="Stop">
+            <ThicknessAnimation Storyboard.TargetProperty="(FrameworkElement.Margin)" 
+                                Storyboard.TargetName="{Binding}"
+                                From="-350,0,0,0" To="0,0,0,0" Duration="0:0:0.75"/>
+        </Storyboard>
+    </Application.Resources>
+</Application>
