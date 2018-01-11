@@ -65,7 +65,7 @@ namespace BatteryMonitoringSystem.Models
             try
             {
                 customSerialPort.Close();
-                //customSerialPort.DataReceived -= SerialPort_DataReceived;
+                customSerialPort.DataReceived -= SerialPort_DataReceived;
                 customSerialPort = null;
             }
             catch(Exception ex)
@@ -82,7 +82,7 @@ namespace BatteryMonitoringSystem.Models
                 customSerialPort.DiscardOutBuffer();
                 customSerialPort.DiscardInBuffer();
                 receiveNow.Reset();
-                customSerialPort.Write(command + "\r");
+                customSerialPort.Write(command + "\r\n");
 
                 string input = ReadResponse(responseTimeout);
                 if ((input.Length == 0) || (!input.EndsWith("\r\n> ") && !input.EndsWith("\r\nOK\r\n")))
@@ -142,7 +142,7 @@ namespace BatteryMonitoringSystem.Models
                     if (inputPINWindow.ShowDialog() == true)
                     {
                         PIN = inputPINWindow.PIN.Text;
-                        command = "AT+CPIN=" + PIN + "\r";
+                        command = "AT+CPIN=" + PIN;
                         receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
                     }
                     else
@@ -150,7 +150,7 @@ namespace BatteryMonitoringSystem.Models
                 }                
                 command = "AT+CMGS=\"" + phoneNumber + "\"";
                 receivedData = ExecuteCommand(command, 300, "Failed to accept phone number.");
-                command = message + char.ConvertFromUtf32(26) + "\r";
+                command = message + char.ConvertFromUtf32(26);
                 receivedData = ExecuteCommand(command, 3000, "Failed to send message.");
                 if (receivedData.EndsWith("\r\nOK\r\n"))
                     isSend = true;
@@ -189,8 +189,8 @@ namespace BatteryMonitoringSystem.Models
             string command = "";
             try
             {
-                string receivedData = ExecuteCommand("AT", 300, "No phone connected.");
-                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
+                string receivedData = ExecuteCommand("AT", 500, "No phone connected.");
+                receivedData = ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 receivedData = ExecuteCommand("AT+CPIN?", 300, "");
                 if (PIN == "" && receivedData.Contains("OK"))
                 {
@@ -203,8 +203,8 @@ namespace BatteryMonitoringSystem.Models
                     }
                     else return -1;             
                 }
-                receivedData = ExecuteCommand("AT+CMPS?", 1000, "Failed to count SMS message.");
-                if (receivedData.Length >= 45 && receivedData.StartsWith("AT+CMPS?"))
+                receivedData = ExecuteCommand("AT+CPMS?", 1000, "Failed to count SMS message.");
+                if (receivedData.Length >= 45 && receivedData.StartsWith("AT+CPMS?"))
                     CountSMSMessages = Convert.ToInt32(receivedData.Split(',')[1]);
                 else if (receivedData.Contains("ERROR"))
                     return -1;

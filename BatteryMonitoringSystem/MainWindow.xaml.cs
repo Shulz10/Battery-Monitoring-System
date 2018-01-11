@@ -79,7 +79,8 @@ namespace BatteryMonitoringSystem
 
         private void GetListMessage(string phoneNumber, string command)
         {
-            if(customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
+            //int i = customComPort.CountSMSMessages(ref gsmUserPin);
+            if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
             {
                 Thread listeningThread = new Thread(ReceivingResponseToRequest);
                 listeningThread.Start();
@@ -144,11 +145,12 @@ namespace BatteryMonitoringSystem
             {
                 try
                 {
+                    Thread.Sleep(10000);
                     string str = "";
                     if (customComPort.CountSMSMessages(ref gsmUserPin) > 0)
                         str = customComPort.ReadSMS(ref gsmUserPin);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     throw ex;
                 }

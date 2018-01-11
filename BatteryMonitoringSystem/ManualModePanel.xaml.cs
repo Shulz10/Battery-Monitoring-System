@@ -21,8 +21,6 @@ namespace BatteryMonitoringSystem
     /// </summary>
     public partial class ManualModePanel : UserControl
     {
-        private CommandCode commandCode;
-
         public ManualModePanel()
         {
             InitializeComponent();
