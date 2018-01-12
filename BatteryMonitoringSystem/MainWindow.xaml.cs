@@ -145,7 +145,6 @@ namespace BatteryMonitoringSystem
             {
                 try
                 {
-                    Thread.Sleep(10000);
                     string str = "";
                     if (customComPort.CountSMSMessages(ref gsmUserPin) > 0)
                         str = customComPort.ReadSMS(ref gsmUserPin);
@@ -154,15 +153,6 @@ namespace BatteryMonitoringSystem
                 {
                     throw ex;
                 }
-                //string message = "";
-                //do
-                //{
-                //    customComPort.CustomSerialPort.Write("AT+CMGL=\"REC UNREAD\"\r\n");
-                //    Thread.Sleep(500);
-                //    message = customComPort.CustomSerialPort.ReadExisting();
-                //}
-                //while (message == "OK");
-                //string str = message;
             });
         }
 

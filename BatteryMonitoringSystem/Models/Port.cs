@@ -133,21 +133,21 @@ namespace BatteryMonitoringSystem.Models
 
             try
             {
-                string receivedData = ExecuteCommand("AT", 300, "No phone connected.");
-                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
+                string receivedData = ExecuteCommand("AT", 300, "No phone connected.");                
                 receivedData = ExecuteCommand("AT+CPIN?", 300, "");
-                if(PIN == "" && receivedData.Contains("OK"))
+                if (receivedData.Contains("OK"))
                 {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
+                    if (PIN == "")
                     {
-                        PIN = inputPINWindow.PIN.Text;
-                        command = "AT+CPIN=" + PIN;
-                        receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
+                        InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                        if (inputPINWindow.ShowDialog() == true)
+                            PIN = inputPINWindow.PIN.Text;
+                        else return isSend;
                     }
-                    else
-                        return isSend;
-                }                
+                    command = "AT+CPIN=" + PIN + "\r";
+                    receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
+                }
+                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
                 command = "AT+CMGS=\"" + phoneNumber + "\"";
                 receivedData = ExecuteCommand(command, 300, "Failed to accept phone number.");
                 command = message + char.ConvertFromUtf32(26);
@@ -190,19 +190,21 @@ namespace BatteryMonitoringSystem.Models
             try
             {
                 string receivedData = ExecuteCommand("AT", 500, "No phone connected.");
-                receivedData = ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 receivedData = ExecuteCommand("AT+CPIN?", 300, "");
-                if (PIN == "" && receivedData.Contains("OK"))
+                if (receivedData.Contains("OK"))
                 {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
+                    if (PIN == "")
                     {
-                        PIN = inputPINWindow.PIN.Text;
-                        command = "AT+CPIN=" + PIN + "\r";
-                        receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
+                        InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                        if (inputPINWindow.ShowDialog() == true)                        
+                            PIN = inputPINWindow.PIN.Text;                           
+                        else return -1;
                     }
-                    else return -1;             
+                    command = "AT+CPIN=" + PIN + "\r";
+                    receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
                 }
+                receivedData = ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
+                //receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
                 receivedData = ExecuteCommand("AT+CPMS?", 1000, "Failed to count SMS message.");
                 if (receivedData.Length >= 45 && receivedData.StartsWith("AT+CPMS?"))
                     CountSMSMessages = Convert.ToInt32(receivedData.Split(',')[1]);
@@ -220,23 +222,26 @@ namespace BatteryMonitoringSystem.Models
         //Read SMS
         public string ReadSMS(ref string PIN)
         {
+            string command = "";
             try
             {
                 string receivedData = ExecuteCommand("AT", 300, "No phone connected.");
-                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
                 receivedData = ExecuteCommand("AT+CPIN?", 300, "");
-                if (PIN == "" && receivedData.Contains("OK"))
+                if (receivedData.Contains("OK"))
                 {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
+                    if (PIN == "")
                     {
-                        PIN = inputPINWindow.PIN.Text;
-                        string command = "AT+CPIN=" + PIN + "\r";
-                        receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
+                        InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                        if (inputPINWindow.ShowDialog() == true)
+                            PIN = inputPINWindow.PIN.Text;
+                        else return "";
                     }
-                    else return "";
+                    command = "AT+CPIN=" + PIN + "\r";
+                    receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
                 }
-                receivedData = ExecuteCommand("AT+CSCS=\"PCCP437\"", 300, "Failed to set character set.");
+                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
+                receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                receivedData = ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
                 receivedData = ExecuteCommand("AT+CPMS=\"SM\"", 300, "Failed to select message storage.");
                 string input = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 5000, "Failed to read the messages.");
 
