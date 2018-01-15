@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Ports;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 
@@ -220,9 +222,10 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Read SMS
-        public string ReadSMS(ref string PIN)
+        public List<ShortMessage> ReadSMS(ref string PIN)
         {
             string command = "";
+            List<ShortMessage> messages = null;
             try
             {
                 string receivedData = ExecuteCommand("AT", 300, "No phone connected.");
@@ -234,7 +237,7 @@ namespace BatteryMonitoringSystem.Models
                         InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
                         if (inputPINWindow.ShowDialog() == true)
                             PIN = inputPINWindow.PIN.Text;
-                        else return "";
+                        else return null;
                     }
                     command = "AT+CPIN=" + PIN + "\r";
                     receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
@@ -245,18 +248,48 @@ namespace BatteryMonitoringSystem.Models
                 receivedData = ExecuteCommand("AT+CPMS=\"SM\"", 300, "Failed to select message storage.");
                 string input = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 5000, "Failed to read the messages.");
 
-                return input;
+                #region Parse Messages
+                messages = ParseMessages(input);
+                #endregion
             }
             catch (Exception ex)
             {
                 throw ex;
             }
+
+            if (messages != null)
+                return messages;
+            else
+                return null;
         }
 
         //Parse Messages
-        public void ParseMessages(string input)
+        public List<ShortMessage> ParseMessages(string input)
         {
+            List<ShortMessage> messages = new List<ShortMessage>();
+            try
+            {
+                Regex regex = new Regex(@"\+CMGL: (\d+),""(.+)"",""(.+)"",(.*),""(.+)""\r\n(.+)\r\n");
+                Match match = regex.Match(input);
+                while (match.Success)
+                {
+                    messages.Add(new ShortMessage() {
+                        Index = match.Groups[1].Value,
+                        Status = match.Groups[2].Value,
+                        Sender = match.Groups[3].Value,
+                        Alphabet = match.Groups[4].Value,
+                        Sent = match.Groups[5].Value,
+                        Message = match.Groups[6].Value
+                    });
 
+                    match = match.NextMatch();
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return messages;
         }
     }
 }

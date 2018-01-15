@@ -22,6 +22,7 @@ namespace BatteryMonitoringSystem
         private ManualModePanel manualModePanel;
         private ComPortSettingsPanel comPortSettingsPanel;
         private List<string> choseInformationSource;
+        private List<ShortMessage> unreadShortMessages;
         private string gsmUserPin;
 
         public MainWindow()
@@ -79,7 +80,6 @@ namespace BatteryMonitoringSystem
 
         private void GetListMessage(string phoneNumber, string command)
         {
-            //int i = customComPort.CountSMSMessages(ref gsmUserPin);
             if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
             {
                 Thread listeningThread = new Thread(ReceivingResponseToRequest);
@@ -90,64 +90,14 @@ namespace BatteryMonitoringSystem
                 programStatus.Text = "Failed to send message!";
         }
 
-        //private void GetListMessage(string phoneNumber ,string command)
-        //{
-        //    if (customComPort != null && customComPort.CustomSerialPort.IsOpen)
-        //    {
-        //        if (command != "")
-        //        {
-        //            customComPort.CustomSerialPort.WriteLine("AT\r\n");
-        //            customComPort.CustomSerialPort.Write("AT+CMGF=1\r\n");
-        //            Thread.Sleep(500);
-        //            string s = customComPort.CustomSerialPort.ReadExisting();
-        //            if (s.Contains("OK"))
-        //            {
-        //                customComPort.CustomSerialPort.Write("AT+CPIN?\r\n");
-        //                Thread.Sleep(500);
-        //                if (customComPort.CustomSerialPort.ReadExisting().Contains("OK"))
-        //                {
-        //                    if (gsmUserPin == "")
-        //                    {
-        //                        InputPINWindow inputPINWindow = new InputPINWindow
-        //                        {
-        //                            Owner = Window.GetWindow(this)
-        //                        };
-        //                        if (inputPINWindow.ShowDialog() == true)
-        //                            gsmUserPin = inputPINWindow.PIN.Text;
-        //                    }
-        //                    customComPort.CustomSerialPort.Write(string.Format("AT+CPIN={0}\r\n", gsmUserPin));
-        //                    Thread.Sleep(500);
-        //                    if (!customComPort.CustomSerialPort.ReadExisting().Contains("OK"))
-        //                        MessageBox.Show("Invalid PIN. Please try again.", "Error");
-        //                }
-        //                customComPort.CustomSerialPort.Write("AT+CMGS=\"" + phoneNumber + "\"" + "\r\n");
-        //                Thread.Sleep(500);
-        //                customComPort.CustomSerialPort.Write(command + char.ConvertFromUtf32(26) + "\r\n");
-        //                Thread.Sleep(500);
-        //                if (customComPort.CustomSerialPort.ReadExisting().Contains("ERROR"))
-        //                    MessageBox.Show("SEND ERROR", "Error");
-        //                else
-        //                {
-        //                    Thread listeningThread = new Thread(ReceivingResponseToRequest);
-        //                    listeningThread.Start();
-        //                    MessageBox.Show("Command was sent successfully!", "Congratulations", MessageBoxButton.OK, MessageBoxImage.Information);
-        //                }                    
-        //            }
-        //        }
-        //        else MessageBox.Show("Сommand wasn't generated. Please try again.", "Error");
-        //    }
-        //    else MessageBox.Show("Please set COM-port settings!", "Error");
-        //}
-
         private void ReceivingResponseToRequest()
         {
             this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (ThreadStart)delegate ()
             {
                 try
                 {
-                    string str = "";
                     if (customComPort.CountSMSMessages(ref gsmUserPin) > 0)
-                        str = customComPort.ReadSMS(ref gsmUserPin);
+                        unreadShortMessages = customComPort.ReadSMS(ref gsmUserPin);
                 }
                 catch (Exception ex)
                 {
