@@ -273,15 +273,7 @@ namespace BatteryMonitoringSystem.Models
                 Match match = regex.Match(input);
                 while (match.Success)
                 {
-                    messages.Add(new ShortMessage() {
-                        Index = match.Groups[1].Value,
-                        Status = match.Groups[2].Value,
-                        Sender = match.Groups[3].Value,
-                        Alphabet = match.Groups[4].Value,
-                        Sent = match.Groups[5].Value,
-                        Message = match.Groups[6].Value
-                    });
-
+                    messages.Add(new ShortMessage(phoneNumber: match.Groups[3].Value, messageBody: match.Groups[6].Value));
                     match = match.NextMatch();
                 }
             }

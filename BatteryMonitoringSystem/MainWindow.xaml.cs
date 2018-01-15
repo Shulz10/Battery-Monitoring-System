@@ -82,22 +82,36 @@ namespace BatteryMonitoringSystem
         {
             if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
             {
-                Thread listeningThread = new Thread(ReceivingResponseToRequest);
-                listeningThread.Start();
+                Thread listeningThread = new Thread(new ParameterizedThreadStart(ReceivingResponseToRequest));
+                listeningThread.Start(phoneNumber);
                 programStatus.Text = "Message has sent successfully";
             }
             else
                 programStatus.Text = "Failed to send message!";
         }
 
-        private void ReceivingResponseToRequest()
+        private void ReceivingResponseToRequest(object phoneNumber)
         {
             this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (ThreadStart)delegate ()
             {
                 try
                 {
                     if (customComPort.CountSMSMessages(ref gsmUserPin) > 0)
+                    {
                         unreadShortMessages = customComPort.ReadSMS(ref gsmUserPin);
+                        unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber as string);
+                        if (unreadShortMessages != null)
+                        {
+                            foreach (var msg in unreadShortMessages)
+                                messagesHistoryDataGrid.Items.Add(new
+                                {
+                                    MessageNumber = msg.MessageNumber,
+                                    MessageDateTime = msg.SentDateTime,
+                                    Message = msg.Message,
+                                    PhoneNumber = msg.Sender
+                                });
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
