@@ -9,7 +9,7 @@ namespace BatteryMonitoringSystem.Models
         #region Private Variable
         private string messageNumber;
         private string sender;
-        private DateTime sentDateTime;
+        private DateTime receivedDateTime;
         private string message;
         #endregion
 
@@ -26,10 +26,10 @@ namespace BatteryMonitoringSystem.Models
             set { sender = value; }
         }
 
-        public DateTime SentDateTime
+        public DateTime ReceivedDateTime
         {
-            get { return sentDateTime; }
-            set { sentDateTime = value; }
+            get { return receivedDateTime; }
+            set { receivedDateTime = value; }
         }
 
         public string Message
@@ -43,7 +43,7 @@ namespace BatteryMonitoringSystem.Models
         public ShortMessage(string phoneNumber, string messageBody)
         {
             sender = phoneNumber;
-            sentDateTime = new DateTime(2018, 1, 1);
+            receivedDateTime = new DateTime(2018, 1, 1);
             ParseShortMessageBody(messageBody);
         }
         #endregion
@@ -53,10 +53,10 @@ namespace BatteryMonitoringSystem.Models
             messageNumber = int.Parse(messageBody.Substring(0, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
 
             var t = TimeSpan.FromSeconds(int.Parse(messageBody.Substring(8, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber));
-            sentDateTime.AddDays(t.Days);
-            sentDateTime.AddHours(t.Hours);
-            sentDateTime.AddMinutes(t.Minutes);
-            sentDateTime.AddSeconds(t.Seconds);
+            receivedDateTime.AddDays(t.Days);
+            receivedDateTime.AddHours(t.Hours);
+            receivedDateTime.AddMinutes(t.Minutes);
+            receivedDateTime.AddSeconds(t.Seconds);
 
             string[] packages = new string[4];
             for (int i = 0; i < 4; i++)
@@ -75,7 +75,11 @@ namespace BatteryMonitoringSystem.Models
                     message += "  0x" + b;
                 if(i+1 != packages.Length) message += "\r\n";
             }
+        }
 
+        public override string ToString()
+        {
+            return "Сообщение №" + MessageNumber + " получено от источника информации " + Sender + " в " + ReceivedDateTime + "\r\n" + Message;
         }
     }
 }
