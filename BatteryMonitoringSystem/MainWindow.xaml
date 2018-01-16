@@ -51,13 +51,13 @@
                 </Button>
             <Separator Margin="0"/>
         </StackPanel>
-        <ListView x:Name="messagesHistoryDataGrid" Grid.Row="1" Grid.Column="2" Margin="40">
+        <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" Loaded="MessagesHistoryView_Loaded">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}"/>
-                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=PhoneNumber}"/>
-                    <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=MessageDateTime, StringFormat=dd.MM.yyyy }"/>
-                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=MessageDateTime.TimeOfDay}"/>
+                    <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="25"/>
+                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=PhoneNumber}" Width="150"/>
+                    <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=MessageDateTime, StringFormat=dd.MM.yyyy }" Width="150"/>
+                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=MessageDateTime.TimeOfDay}" Width="150"/>
                     <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Path=Message}"/>
                 </GridView>
             </ListView.View>

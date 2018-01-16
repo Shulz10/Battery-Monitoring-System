@@ -29,7 +29,7 @@ namespace BatteryMonitoringSystem
         {
             InitializeComponent();
 
-            informationSourcePanel = new InformationSourcePanel(messagesHistoryDataGrid);
+            informationSourcePanel = new InformationSourcePanel(messagesHistoryView);
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             autoModePanel = new AutoModePanel();
             manualModePanel = new ManualModePanel();
@@ -43,7 +43,7 @@ namespace BatteryMonitoringSystem
         private void SetInformationSource()
         {
             choseInformationSource = new List<string>();
-            messagesHistoryDataGrid.Items.Clear();
+            messagesHistoryView.Items.Clear();
             using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
             {
                 foreach (var source in informationSourcePanel.sourcePanel.Children.OfType<CheckBox>())
@@ -65,7 +65,7 @@ namespace BatteryMonitoringSystem
                                  }).ToList();
 
                     if(query.Count > 0)
-                        messagesHistoryDataGrid.Items.Add(query);
+                        messagesHistoryView.Items.Add(query);
                 }
             }
             MessageBox.Show("Sources of information were successfully selected!", "Congratulations", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -103,10 +103,10 @@ namespace BatteryMonitoringSystem
                         if (unreadShortMessages != null)
                         {
                             foreach (var msg in unreadShortMessages)
-                                messagesHistoryDataGrid.Items.Add(new
+                                messagesHistoryView.Items.Add(new
                                 {
                                     MessageNumber = msg.MessageNumber,
-                                    MessageDateTime = msg.SentDateTime,
+                                    MessageDateTime = msg.ReceivedDateTime,
                                     Message = msg.Message,
                                     PhoneNumber = msg.Sender
                                 });
@@ -223,6 +223,54 @@ namespace BatteryMonitoringSystem
 
         private void SideMenuBtn_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e) => programStatus.Text = (sender as Button).ToolTip.ToString();
 
-        private void SideMenuBtn_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e) => programStatus.Text = "";      
+        private void SideMenuBtn_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e) => programStatus.Text = "";
+
+        private void MessagesHistoryView_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.WidthChanged)
+            {
+                GridView view = this.messagesHistoryView.View as GridView;
+                for (int i = 0; i < view.Columns.Count; i++)
+                {
+                    Decorator border = VisualTreeHelper.GetChild(this.messagesHistoryView, 0) as Decorator;
+                    if(border != null)
+                    {
+                        ScrollViewer scroller = border.Child as ScrollViewer;
+                        if(scroller != null)
+                        {
+                            ItemsPresenter presenter = scroller.Content as ItemsPresenter;
+                            if(presenter != null)
+                            {
+                                view.Columns[i].Width = presenter.ActualWidth;
+                                for (int j = 0; j < view.Columns.Count; j++)
+                                    if(j != i)
+                                        view.Columns[i].Width -= view.Columns[j].ActualWidth;
+                            }
+                        }
+                    }                  
+                }
+            }
+        }
+
+        private void MessagesHistoryView_Loaded(object sender, RoutedEventArgs e)
+        {
+            GridView view = this.messagesHistoryView.View as GridView;
+            Decorator border = VisualTreeHelper.GetChild(this.messagesHistoryView, 0) as Decorator;
+            if (border != null)
+            {
+                ScrollViewer scroller = border.Child as ScrollViewer;
+                if (scroller != null)
+                {
+                    ItemsPresenter presenter = scroller.Content as ItemsPresenter;
+                    if (presenter != null)
+                    {
+                        view.Columns[4].Width = presenter.ActualWidth;
+                        for (int i = 0; i < view.Columns.Count; i++)
+                            if (i != 4) view.Columns[4].Width -= view.Columns[i].ActualWidth;
+                    }
+                }
+            }
+            this.messagesHistoryView.SizeChanged += MessagesHistoryView_SizeChanged;
+        }
     }
 }
