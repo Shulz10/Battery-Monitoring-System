@@ -51,7 +51,7 @@
                 </Button>
             <Separator Margin="0"/>
         </StackPanel>
-        <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" Loaded="MessagesHistoryView_Loaded">
+        <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" Loaded="MessagesHistoryView_Loaded" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="25"/>

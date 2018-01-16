@@ -24,6 +24,7 @@ namespace BatteryMonitoringSystem
         private List<string> choseInformationSource;
         private List<ShortMessage> unreadShortMessages;
         private string gsmUserPin;
+        private double messagesHistoryListViewActualWidth;
 
         public MainWindow()
         {
@@ -230,25 +231,24 @@ namespace BatteryMonitoringSystem
             if (e.WidthChanged)
             {
                 GridView view = this.messagesHistoryView.View as GridView;
-                for (int i = 0; i < view.Columns.Count; i++)
+                Decorator border = VisualTreeHelper.GetChild(this.messagesHistoryView, 0) as Decorator;
+                if(border != null)
                 {
-                    Decorator border = VisualTreeHelper.GetChild(this.messagesHistoryView, 0) as Decorator;
-                    if(border != null)
+                    ScrollViewer scroller = border.Child as ScrollViewer;
+                    if(scroller != null)
                     {
-                        ScrollViewer scroller = border.Child as ScrollViewer;
-                        if(scroller != null)
+                        ItemsPresenter presenter = scroller.Content as ItemsPresenter;
+                        if(presenter != null)
                         {
-                            ItemsPresenter presenter = scroller.Content as ItemsPresenter;
-                            if(presenter != null)
+                            for(int i = 0; i < view.Columns.Count; i++)
                             {
-                                view.Columns[i].Width = presenter.ActualWidth;
-                                for (int j = 0; j < view.Columns.Count; j++)
-                                    if(j != i)
-                                        view.Columns[i].Width -= view.Columns[j].ActualWidth;
+                                double percentWidth = view.Columns[i].Width * 100 / messagesHistoryListViewActualWidth;
+                                view.Columns[i].Width = percentWidth * presenter.ActualWidth / 100;
                             }
+                            messagesHistoryListViewActualWidth = presenter.ActualWidth;
                         }
-                    }                  
-                }
+                    }
+                }                  
             }
         }
 
@@ -268,6 +268,7 @@ namespace BatteryMonitoringSystem
                         for (int i = 0; i < view.Columns.Count; i++)
                             if (i != 4) view.Columns[4].Width -= view.Columns[i].ActualWidth;
                     }
+                    messagesHistoryListViewActualWidth = presenter.ActualWidth;
                 }
             }
             this.messagesHistoryView.SizeChanged += MessagesHistoryView_SizeChanged;
