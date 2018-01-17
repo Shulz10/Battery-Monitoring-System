@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using SQLite.CodeFirst;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
@@ -14,7 +16,7 @@ namespace BatteryMonitoringSystem.Models
         private string phoneNumber;
 
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Autoincrement]
         public int InformationSourceID
         {
             get { return informationSourceID; }
@@ -25,6 +27,7 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        [Required]
         public string Operator
         {
             get { return phoneOperator; }
@@ -35,6 +38,7 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        [Required]
         public string InternationalCode
         {
             get { return internationalCode; }
@@ -45,6 +49,8 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        [Unique]
+        [Required]
         public string PhoneNumber
         {
             get { return phoneNumber; }
@@ -54,6 +60,8 @@ namespace BatteryMonitoringSystem.Models
                 OnPropertyChanged("PhoneNumber");
             }
         }
+
+        public virtual ICollection<Information> Informations { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName]string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

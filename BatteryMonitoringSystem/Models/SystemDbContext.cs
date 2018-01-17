@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Data.SQLite;
 using System.IO;
 using System.Reflection;
+using SQLite.CodeFirst;
 
 namespace BatteryMonitoringSystem.Models
 {
@@ -16,7 +17,11 @@ namespace BatteryMonitoringSystem.Models
 
             AppDomain.CurrentDomain.SetData("DataDirectory", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
             Database.Connection.ConnectionString = connectionString;
-            Database.SetInitializer(new CreateDatabaseIfNotExists<SystemDbContext>());
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            Database.SetInitializer(new SqliteCreateDatabaseIfNotExists<SystemDbContext>(modelBuilder));
         }
 
         public DbSet<InformationSource> InformationSources { get; set; }

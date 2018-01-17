@@ -9,12 +9,10 @@ namespace BatteryMonitoringSystem.Models
     [Table("Informations")]
     public class Information : INotifyPropertyChanged
     {
-        //[Key]
         private int messageNumber;
         private int informationSourceID;
         private DateTime messageDateTime;
         private string message;
-        private InformationSource informationSource;
 
         [Key]
         public int MessageNumber
@@ -27,6 +25,7 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        [Required]
         public int InformationSourceID
         {
             get { return informationSourceID; }
@@ -37,6 +36,7 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        [Required]
         public DateTime MessageDateTime
         {
             get { return messageDateTime; }
@@ -47,6 +47,7 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        [Required]
         public string Message
         {
             get { return message; }
@@ -57,11 +58,7 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
-        public virtual InformationSource InformationSource
-        {
-            get { return informationSource; }
-            set { informationSource = value; }
-        }
+        public virtual InformationSource InformationSource { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName]string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
