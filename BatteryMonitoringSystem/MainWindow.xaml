@@ -54,23 +54,14 @@
         <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" Loaded="MessagesHistoryView_Loaded" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="25"/>
-                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=PhoneNumber}" Width="150"/>
+                    <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="35"/>
+                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=PhoneNumber}" Width="200"/>
                     <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=MessageDateTime, StringFormat=dd.MM.yyyy }" Width="150"/>
                     <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=MessageDateTime.TimeOfDay}" Width="150"/>
                     <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Path=Message}"/>
                 </GridView>
             </ListView.View>
         </ListView>
-        <!--<DataGrid x:Name="messagesHistoryDataGrid" Grid.Row="1" Grid.Column="2" Margin="20" CanUserSortColumns="False" CanUserReorderColumns="False" CanUserDeleteRows="False" CanUserAddRows="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="№" Binding="{Binding Path=MessageNumber}" MinWidth="30" MaxWidth="60"/>
-                <DataGridTextColumn Header="Номер телефона" MinWidth="120" MaxWidth="240" Binding="{Binding Path=PhoneNumber}"/>
-                <DataGridTextColumn Header="Дата" Binding="{Binding Path=MessageDateTime, StringFormat=dd.MM.yyyy }" MinWidth="100" MaxWidth="240"/>
-                <DataGridTextColumn Header="Время" Binding="{Binding Path=MessageDateTime.TimeOfDay}" MinWidth="100" MaxWidth="240"/>
-                <DataGridTextColumn Header="Сообщение" Binding="{Binding Path=Message}" MinWidth="250" MaxWidth="500"/>
-            </DataGrid.Columns>
-        </DataGrid>-->
         <StatusBar Grid.Row="2" Grid.ColumnSpan="3">
             <StatusBarItem Width="74" HorizontalAlignment="Left">
                 <TextBlock Text="Статус:"/>
