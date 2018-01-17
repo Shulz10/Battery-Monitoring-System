@@ -16,7 +16,7 @@ namespace BatteryMonitoringSystem.Models
 
             AppDomain.CurrentDomain.SetData("DataDirectory", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
             Database.Connection.ConnectionString = connectionString;
-            Database.SetInitializer<SystemDbContext>(null);
+            Database.SetInitializer(new CreateDatabaseIfNotExists<SystemDbContext>());
         }
 
         public DbSet<InformationSource> InformationSources { get; set; }
