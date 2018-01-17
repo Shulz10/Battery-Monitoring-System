@@ -52,24 +52,29 @@ namespace BatteryMonitoringSystem
                     if (source.IsChecked ?? false)
                         choseInformationSource.Add((source.Content as TextBlock).Text);
                 }
-                foreach (var infoSource in choseInformationSource)
+                if (choseInformationSource.Count > 0)
                 {
-                    var query = (from source in context.InformationSources
-                                 join info in context.Informations on source.InformationSourceID equals info.InformationSourceID
-                                 where source.InternationalCode == infoSource.Substring(0, 6) && source.PhoneNumber == infoSource.Substring(6)
-                                 select new
-                                 {
-                                     MessageNumber = info.MessageNumber,
-                                     MessageDateTime = info.MessageDateTime,
-                                     Message = info.Message,
-                                     PhoneNumber = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
-                                 }).ToList();
+                    foreach (var infoSource in choseInformationSource)
+                    {
+                        var query = (from source in context.InformationSources
+                                     join info in context.Informations on source.InformationSourceID equals info.InformationSourceID
+                                     where source.InternationalCode == infoSource.Substring(0, 6) && source.PhoneNumber == infoSource.Substring(6)
+                                     select new
+                                     {
+                                         MessageNumber = info.MessageNumber,
+                                         MessageDateTime = info.MessageDateTime,
+                                         Message = info.Message,
+                                         PhoneNumber = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
+                                     }).ToList();
 
-                    if(query.Count > 0)
-                        messagesHistoryView.Items.Add(query);
+                        if (query.Count > 0)
+                            messagesHistoryView.Items.Add(query);
+                    }
+                    programStatus.Text = "Information sources were successfully selected";
                 }
+                else
+                    MessageBox.Show("None of the information sources is selected!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-            MessageBox.Show("Sources of information were successfully selected!", "Congratulations", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void AcceptSettings()

@@ -96,52 +96,31 @@ namespace BatteryMonitoringSystem
                 {
                     var infoSource = (from sources in context.InformationSources select new { sources.InternationalCode, sources.PhoneNumber }).ToList().Last();
 
-                    CheckBox checkBox = new CheckBox()
+                    if (infoSource != null)
                     {
-                        FlowDirection = FlowDirection.RightToLeft,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 5, 0, 5),
-                        FontSize = 14,
-                        Content = new TextBlock()
-                        {
-                            FlowDirection = FlowDirection.LeftToRight,
-                            Text = infoSource.InternationalCode + infoSource.PhoneNumber,
-                            Margin = new Thickness(100, 0, 0, 0)
-                        }
-                    };
+                        if(sourcePanel.Children.OfType<CheckBox>().ToList().Count == 0)
+                            sourcePanel.Children.Remove(sourcePanel.Children.OfType<Label>().First());
 
-                    sourcePanel.Children.Add(checkBox);
+                        CheckBox checkBox = new CheckBox()
+                        {
+                            FlowDirection = FlowDirection.RightToLeft,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            Margin = new Thickness(0, 5, 0, 5),
+                            FontSize = 14,
+                            Content = new TextBlock()
+                            {
+                                FlowDirection = FlowDirection.LeftToRight,
+                                Text = infoSource.InternationalCode + infoSource.PhoneNumber,
+                                Margin = new Thickness(100, 0, 0, 0)
+                            }
+                        };
+
+                        sourcePanel.Children.Add(checkBox);
+                        chooseSourceBtn.IsEnabled = true;
+                    }
                 }
             }
         }
-
-        //private void ChooseSourceBtn_Click(object sender, RoutedEventArgs e)
-        //{
-        //    List<string> choseInformationSource = new List<string>();
-        //    using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
-        //    {
-        //        foreach (var source in informationSourcePanel.Children.OfType<CheckBox>())
-        //        {
-        //            if (source.IsChecked ?? false)
-        //                choseInformationSource.Add((source.Content as TextBlock).Text);
-        //        }
-        //        foreach (var infoSource in choseInformationSource)
-        //        {
-        //            var query = (from source in context.InformationSources
-        //                            join info in context.Informations on source.InformationSourceID equals info.InformationSourceID
-        //                            where source.InternationalCode == infoSource.Substring(0, 6) && source.PhoneNumber == infoSource.Substring(6)
-        //                            select new
-        //                            {
-        //                                MessageNumber = info.MessageNumber,
-        //                                MessageDateTime = info.MessageDateTime,
-        //                                Message = info.Message,
-        //                                PhoneNumber = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
-        //                            }).ToList();
-        //            //MessageTable.Items.Add(query);
-        //            MessageTable.ItemsSource = query;
-        //        }
-        //    }
-        //}
 
         private void RemoveSourceBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -165,6 +144,23 @@ namespace BatteryMonitoringSystem
 
                 foreach (var checkBox in checkBoxes)
                     sourcePanel.Children.Remove(checkBox);
+
+                if(sourcePanel.Children.Count == 0)
+                {
+                    Label label = new Label()
+                    {
+                        Content = "Список источников информации пуст!",
+                        FontFamily = new FontFamily("Sitka Display"),
+                        FontStyle = FontStyles.Italic,
+                        FontSize = 16,
+                        Foreground = Brushes.Red,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Margin = new Thickness(0, 5, 0, 5)
+                    };
+
+                    sourcePanel.Children.Add(label);
+                    chooseSourceBtn.IsEnabled = false;
+                }
             }
         }
 
@@ -209,6 +205,7 @@ namespace BatteryMonitoringSystem
                     };
 
                     sourcePanel.Children.Add(label);
+                    chooseSourceBtn.IsEnabled = false;
                 }
             }
         }        
