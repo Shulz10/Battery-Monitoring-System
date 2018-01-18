@@ -86,7 +86,9 @@ namespace BatteryMonitoringSystem
 
         private void GetListMessage(string phoneNumber, string command)
         {
-            if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
+            if (command.StartsWith("Ошибка"))
+                programStatus.Text = command;
+            else if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
             {
                 Thread listeningThread = new Thread(new ParameterizedThreadStart(ReceivingResponseToRequest));
                 listeningThread.Start(phoneNumber);

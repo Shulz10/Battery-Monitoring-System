@@ -40,7 +40,7 @@ namespace BatteryMonitoringSystem
         private static void IsPressedChanged(DependencyObject depObj, DependencyPropertyChangedEventArgs args)
         {
             ManualModePanel panel = (ManualModePanel)depObj;
-            if(!panel.IsPressed && panel.Parent != null)
+            if (!panel.IsPressed && panel.Parent != null)
             {
                 ThicknessAnimation animate = new ThicknessAnimation()
                 {
@@ -90,15 +90,37 @@ namespace BatteryMonitoringSystem
         public string FormSmsCommand(CommandCode commandCode)
         {
             string command = "";
+            int fromN = fromTxt.Text != "" ? Convert.ToInt32(fromTxt.Text) : 0;
+            int beforeN = beforeTxt.Text != "" ? Convert.ToInt32(beforeTxt.Text) : 0;
+            int messageCount = messageCountTxt.Text != "" ? Convert.ToInt32(messageCountTxt.Text) : 0;
+
             switch (commandCode)
             {
                 case CommandCode.RangeMessage:
                     {
-                        if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text != "")
-                            command = "2" + ConvertDecimalNumberToHex(fromTxt.Text) + ConvertDecimalNumberToHex(messageCountTxt.Text) +
-                                        ConvertDecimalNumberToHex(beforeTxt.Text);
-                        else if (fromTxt.Text != "" && beforeTxt.Text != "")
-                            command = "1" + ConvertDecimalNumberToHex(fromTxt.Text) + ConvertDecimalNumberToHex(messageCountTxt.Text) + "0";
+                        if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
+                            command = "1" + ConvertDecimalNumberToHex(fromN, 8) + "01" + "00000000";
+                        else
+                        {
+                            if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text == "")
+                            {
+                                messageCount = beforeN - fromN + 1;
+                                messageCountTxt.Text = messageCount.ToString();
+                            }
+                            else if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text != "")
+                            {
+                                beforeN = fromN + messageCount;
+                                beforeTxt.Text = beforeN.ToString();
+                            }
+                            else if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text != "")
+                            {
+                                if (beforeN - fromN + 1 != messageCount)
+                                    return "Ошибка! Проверьте правильность введенных данных.";
+                            }
+
+                            command = "2" + ConvertDecimalNumberToHex(fromN, 8) + ConvertDecimalNumberToHex(messageCount, 2) +
+                                        ConvertDecimalNumberToHex(beforeN, 8);
+                        }
                         break;
                     }
                 case CommandCode.LastMessage:
@@ -108,9 +130,23 @@ namespace BatteryMonitoringSystem
             return command;
         }
 
-        private string ConvertDecimalNumberToHex(string number)
+        private string ConvertDecimalNumberToHex(int number, int resultSymbolCount)
         {
-            return (Convert.ToInt32(number)).ToString("X");
+            string resultNumber = number.ToString("X");
+            if(resultNumber.Length < resultSymbolCount)
+            {
+                while (resultNumber.Length < resultSymbolCount)
+                    resultNumber = "0" + resultNumber;
+            }
+
+            return resultNumber;
+        }
+
+        private void CommandParameterChanged(object sender, TextChangedEventArgs e)
+        {
+            if (fromTxt.Text == "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
+                getRangeMessageBtn.IsEnabled = false;
+            else getRangeMessageBtn.IsEnabled = true;
         }
     }
 }
