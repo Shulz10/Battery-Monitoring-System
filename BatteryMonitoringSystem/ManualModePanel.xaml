@@ -23,13 +23,13 @@
         <Label Content="Номера сообщений:" FontWeight="Bold" FontSize="16" Margin="10,10,0,0" Style="{StaticResource baseControlStyle}"/>
         <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
             <Label Content="от "/>
-            <TextBox x:Name="fromTxt" Tag="от" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged"/>
+            <TextBox x:Name="fromTxt" Tag="от" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged" MaxLength="10" PreviewTextInput="CheckEnteredCharacter"/>
             <Label Content="до "/>
-            <TextBox x:Name="beforeTxt" Tag="до" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged"/>
+            <TextBox x:Name="beforeTxt" Tag="до" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged" MaxLength="10" PreviewTextInput="CheckEnteredCharacter"/>
         </StackPanel>
         <Label Content="Количество сообщений:" FontWeight="Bold" FontSize="16" Margin="10,10,0,0" Style="{StaticResource baseControlStyle}"/>
         <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
-            <TextBox x:Name="messageCountTxt" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged"/>
+            <TextBox x:Name="messageCountTxt" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged" MaxLength="3" PreviewTextInput="CheckEnteredCharacter"/>
         </StackPanel>
         <ComboBox x:Name="choosePhoneNumber" MinWidth="120" MinHeight="23" Margin="10,20,0,0" SelectedIndex="0" HorizontalAlignment="Left" >
             <ComboBoxItem Visibility="Collapsed" Content="Выберите получателя"/>

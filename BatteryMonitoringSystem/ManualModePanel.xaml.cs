@@ -148,5 +148,11 @@ namespace BatteryMonitoringSystem
                 getRangeMessageBtn.IsEnabled = false;
             else getRangeMessageBtn.IsEnabled = true;
         }
+
+        private void CheckEnteredCharacter(object sender, TextCompositionEventArgs e)
+        {
+            if (!Char.IsDigit(e.Text, 0))
+                e.Handled = true;
+        }
     }
 }
