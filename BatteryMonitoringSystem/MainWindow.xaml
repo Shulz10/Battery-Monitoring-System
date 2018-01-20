@@ -62,12 +62,33 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <StatusBar Grid.Row="2" Grid.ColumnSpan="3">
+        <StatusBar x:Name="statusBar" Grid.Row="2" Grid.ColumnSpan="3">
             <StatusBarItem Width="74" HorizontalAlignment="Left">
                 <TextBlock Text="Статус:"/>
             </StatusBarItem>
             <StatusBarItem>
                 <TextBlock x:Name="programStatus"/>
+            </StatusBarItem>
+            <StatusBarItem x:Name="operationProgress" HorizontalAlignment="Right" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" Visibility="Hidden">
+                <StackPanel Orientation="Horizontal" Height="18">
+                    <Separator>
+                        <Separator.LayoutTransform>
+                            <RotateTransform Angle="90"/>
+                        </Separator.LayoutTransform>
+                    </Separator>
+                    <ProgressBar x:Name="dataLoading" Width="100" Margin="5,0,5,0"/>
+                    <Separator>
+                        <Separator.LayoutTransform>
+                            <RotateTransform Angle="90"/>
+                        </Separator.LayoutTransform>
+                    </Separator>
+                    <TextBlock x:Name="percentProgress" Text="{Binding Value, ElementName=dataLoading, StringFormat={}{0}%}" Margin="10,0,10,0"/>
+                    <Separator>
+                        <Separator.LayoutTransform>
+                            <RotateTransform Angle="90"/>
+                        </Separator.LayoutTransform>
+                    </Separator>
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>
