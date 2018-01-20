@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace BatteryMonitoringSystem
 {
@@ -209,7 +210,9 @@ namespace BatteryMonitoringSystem
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
         {
             operationProgress.Visibility = Visibility.Visible;
-            await Task.Run(() =>
+            dataLoading.Value = 0;
+            
+            await Task.Run(async () =>
             {
                 IEnumerable<DriveInfo> drivesInfo = DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Removable);
                 foreach (var drive in drivesInfo)
@@ -220,11 +223,20 @@ namespace BatteryMonitoringSystem
                         if (filePath != null)
                         {
                             FileInfo smsHistoryFile = new FileInfo(filePath);
+                            double stepValue = await GetStepValueForProgressOperation(filePath);
                             using (StreamReader streamReader = smsHistoryFile.OpenText())
                             {
-                                string sms = streamReader.ReadLine();
-                                if(sms != null)
-                                    messagesHistoryView.Items.Add(new ShortMessage(smsHistoryFile.Name.Replace(".txt",""), sms));
+                                string sms;
+                                while((sms = streamReader.ReadLine()) != null)
+                                {
+                                    messagesHistoryView.Items.Add(new ShortMessage(smsHistoryFile.Name.Replace(".txt", ""), sms));
+                                    await dataLoading.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                                        new DispatcherOperationCallback(delegate(object value)
+                                        {
+                                            dataLoading.Value += Convert.ToDouble(value);
+                                            return null;
+                                        }), stepValue);
+                                }
                             }
                         }
                     }
@@ -297,6 +309,15 @@ namespace BatteryMonitoringSystem
                 }
             }
             this.messagesHistoryView.SizeChanged += MessagesHistoryView_SizeChanged;
+        }
+
+        private Task<double> GetStepValueForProgressOperation(string filePath)
+        {
+            return Task.Run(() =>
+            {
+                double stepsCount = File.ReadAllLines(filePath).Count();
+                return 100 / stepsCount;
+            });
         }
     }
 }
