@@ -3,8 +3,10 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -204,16 +206,32 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void OpenFileOfMessages(object sender, RoutedEventArgs e)
+        private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog() {
-                Filter = "Text files (*.txt)|*.txt",
-            };
-
-            if (openFileDialog.ShowDialog() == true)
+            operationProgress.Visibility = Visibility.Visible;
+            await Task.Run(() =>
             {
-
-            }
+                IEnumerable<DriveInfo> drivesInfo = DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Removable);
+                foreach (var drive in drivesInfo)
+                {
+                    if (drive.IsReady)
+                    {
+                        string filePath = Directory.GetFiles(string.Format(@"{0}", drive.Name), "+375*").FirstOrDefault();
+                        if (filePath != null)
+                        {
+                            FileInfo smsHistoryFile = new FileInfo(filePath);
+                            using (StreamReader streamReader = smsHistoryFile.OpenText())
+                            {
+                                string sms = streamReader.ReadLine();
+                                if(sms != null)
+                                    messagesHistoryView.Items.Add(new ShortMessage(smsHistoryFile.Name.Replace(".txt",""), sms));
+                            }
+                        }
+                    }
+                }
+            });
+            operationProgress.Visibility = Visibility.Hidden;
+            programStatus.Text = "Файл успешно выгружен в таблицу.";
         }
 
         private void ChangeButtonBackgroundColor(string btnName)
