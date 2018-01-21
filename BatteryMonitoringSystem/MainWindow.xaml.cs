@@ -1,6 +1,4 @@
-﻿using BatteryMonitoringSystem.Models;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
@@ -11,6 +9,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using BatteryMonitoringSystem.Models;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Collections;
 
 namespace BatteryMonitoringSystem
 {
@@ -28,6 +29,8 @@ namespace BatteryMonitoringSystem
         private List<ShortMessage> unreadShortMessages;
         private string gsmUserPin;
         private double messagesHistoryListViewActualWidth;
+        private Excel.Application excelApp;
+        private Excel.Window excelWindow;
 
         public MainWindow()
         {
@@ -62,18 +65,19 @@ namespace BatteryMonitoringSystem
                         var query = (from source in context.InformationSources
                                      join info in context.Informations on source.InformationSourceID equals info.InformationSourceID
                                      where source.InternationalCode == infoSource.Substring(0, 6) && source.PhoneNumber == infoSource.Substring(6)
-                                     select new
+                                     select new ShortMessage
                                      {
                                          MessageNumber = info.MessageNumber,
-                                         MessageDateTime = info.MessageDateTime,
+                                         ReceivedDateTime = info.MessageDateTime,
                                          Message = info.Message,
-                                         PhoneNumber = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
+                                         Sender = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
                                      }).ToList();
 
                         if (query.Count > 0)
-                            messagesHistoryView.Items.Add(query);
+                            foreach(ShortMessage msg in query)
+                                messagesHistoryView.Items.Add(msg);
                     }
-                    programStatus.Text = "Information sources were successfully selected";
+                    programStatus.Text = "Источники информации успешно выбраны!";
                 }
                 else
                     MessageBox.Show("None of the information sources is selected!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -318,6 +322,53 @@ namespace BatteryMonitoringSystem
                 double stepsCount = File.ReadAllLines(filePath).Count();
                 return 100 / stepsCount;
             });
+        }
+
+        private void SaveDataToExcelFile(object sender, RoutedEventArgs e)
+        {
+            if (choseInformationSource.Count > 0)
+            {
+                excelApp = new Excel.Application();
+                excelApp.SheetsInNewWorkbook = choseInformationSource.Count;
+                var excelWorkbook = excelApp.Workbooks.Add();
+                int index = 0;
+                foreach (Excel.Worksheet sheet in excelApp.Worksheets)
+                {
+                    sheet.Name = choseInformationSource[index];
+                    sheet.Cells[1, "A"] = "№";
+                    sheet.Cells[1, "B"] = "Дата";
+                    sheet.Cells[1, "C"] = "Время";
+                    sheet.Cells[1, "D"] = "Сообщение";                    
+                    index++;
+                }
+
+                for (int k = 0; k < choseInformationSource.Count; k++)
+                {
+                    List<ShortMessage> listShortMessage = new List<ShortMessage>();
+                    foreach (ShortMessage shortMessage in messagesHistoryView.Items)
+                    {
+                        if(shortMessage.Sender == choseInformationSource[k])
+                            listShortMessage.Add(shortMessage);
+                    }
+
+                    var rowIndex = 1;
+                    foreach (var row in listShortMessage)
+                    {
+                        rowIndex++;
+                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "A"] = row.MessageNumber;
+                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "B"] = row.ReceivedDateTime.Date;
+                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "C"] = row.ReceivedDateTime.TimeOfDay.ToString();
+                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "D"] = row.Message;
+                        excelApp.Worksheets[choseInformationSource[k]].Columns.AutoFit();
+                    }
+
+                }
+                excelWorkbook.SaveAs(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("dd-MM-yyyy H-mm-ss") + ".xlsx", Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                    Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+
+                programStatus.Text = "Excel файл успешно создан!";
+                excelApp.Quit();
+            }
         }
     }
 }

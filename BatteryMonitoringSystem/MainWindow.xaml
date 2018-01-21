@@ -30,34 +30,39 @@
         </DockPanel>
         <StackPanel x:Name="sideMenuPanel" Grid.Column="0" Grid.Row="1" Background="#FFB6B6B6" Orientation="Vertical" Panel.ZIndex="1">
             <Separator Margin="0"/>
-                <Button x:Name="sourceInformationBtn" Background="Transparent" BorderThickness="0" ToolTip="Источники информации" Click="OpenListInformationSources" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
-                    <Image Source="Resources/phone-receiver.png"/>
-                </Button>
-                <Separator Margin="0"/>
-                <Button x:Name="autoModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Автоматический режим работы" Click="OpenListAutoModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
-                    <Image Source="Resources/cogwheels.png"/>
-                </Button>
-                <Separator Margin="0"/>
-                <Button x:Name="manualModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Ручной режим работы" Click="OpenListManualModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
-                    <Image Source="Resources/handshake.png"/>
-                </Button>
-                <Separator Margin="0"/>
-                <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщения из файла" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave" Click="OpenFileOfMessages">
-                    <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
-                </Button>
-                <Separator Margin="0"/>
-                <Button x:Name="comPortSettingsBtn" Background="Transparent" BorderThickness="0" ToolTip="Настройка COM-порта" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave" Click="SetComPortSettings">
-                    <Image Source="Resources/vspc-icon-256.png"/>
-                </Button>
+            <Button x:Name="sourceInformationBtn" Background="Transparent" BorderThickness="0" ToolTip="Источники информации" Click="OpenListInformationSources" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
+                <Image Source="Resources/phone-receiver.png"/>
+            </Button>
+            <Separator Margin="0"/>
+            <Button x:Name="autoModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Автоматический режим работы" Click="OpenListAutoModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
+                <Image Source="Resources/cogwheels.png"/>
+            </Button>
+            <Separator Margin="0"/>
+            <Button x:Name="manualModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Ручной режим работы" Click="OpenListManualModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
+                <Image Source="Resources/handshake.png"/>
+            </Button>
+            <Separator Margin="0"/>
+            <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщения из файла" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave" Click="OpenFileOfMessages">
+                <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
+            </Button>
+            <Separator Margin="0"/>
+            <Button x:Name="comPortSettingsBtn" Background="Transparent" BorderThickness="0" ToolTip="Настройка COM-порта" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave" Click="SetComPortSettings">
+                <Image Source="Resources/vspc-icon-256.png"/>
+            </Button>
+            <Separator Margin="0"/>
+            <Button x:Name="saveToExcelFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Сохранить историю сообщений в файл" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave" Click="SaveDataToExcelFile">
+                <!--<Image Source=""/>-->
+                <Button.Content>Excel</Button.Content>
+            </Button>
             <Separator Margin="0"/>
         </StackPanel>
         <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" Loaded="MessagesHistoryView_Loaded" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="35"/>
-                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=PhoneNumber}" Width="200"/>
-                    <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=MessageDateTime, StringFormat=dd.MM.yyyy }" Width="150"/>
-                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=MessageDateTime.TimeOfDay}" Width="150"/>
+                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=Sender}" Width="200"/>
+                    <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=ReceivedDateTime, StringFormat=dd.MM.yyyy }" Width="150"/>
+                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=ReceivedDateTime.TimeOfDay}" Width="150"/>
                     <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Path=Message}"/>
                 </GridView>
             </ListView.View>
