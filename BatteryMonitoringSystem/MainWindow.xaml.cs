@@ -336,9 +336,13 @@ namespace BatteryMonitoringSystem
                 {
                     sheet.Name = choseInformationSource[index];
                     sheet.Cells[1, "A"] = "№";
+                    sheet.Columns["A"].ColumnWidth = 5; 
                     sheet.Cells[1, "B"] = "Дата";
+                    sheet.Columns["B"].ColumnWidth = 30;
                     sheet.Cells[1, "C"] = "Время";
-                    sheet.Cells[1, "D"] = "Сообщение";                    
+                    sheet.Columns["C"].ColumnWidth = 30;
+                    sheet.Cells[1, "D"] = "Сообщение";
+                    sheet.Columns["D"].ColumnWidth = 100;
                     index++;
                 }
 
@@ -359,7 +363,6 @@ namespace BatteryMonitoringSystem
                         excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "B"] = row.ReceivedDateTime.Date;
                         excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "C"] = row.ReceivedDateTime.TimeOfDay.ToString();
                         excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "D"] = row.Message;
-                        excelApp.Worksheets[choseInformationSource[k]].Columns.AutoFit();
                     }
 
                 }
