@@ -34,10 +34,10 @@
                 <Image Source="Resources/phone-receiver.png"/>
             </Button>
             <Separator Margin="0"/>
-            <Button x:Name="autoModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Автоматический режим работы" Click="OpenListAutoModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
+            <!--<Button x:Name="autoModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Автоматический режим работы" Click="OpenListAutoModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
                 <Image Source="Resources/cogwheels.png"/>
             </Button>
-            <Separator Margin="0"/>
+            <Separator Margin="0"/>-->
             <Button x:Name="manualModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Ручной режим работы" Click="OpenListManualModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
                 <Image Source="Resources/handshake.png"/>
             </Button>
@@ -51,8 +51,7 @@
             </Button>
             <Separator Margin="0"/>
             <Button x:Name="saveToExcelFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Сохранить историю сообщений в файл" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave" Click="SaveDataToExcelFile">
-                <!--<Image Source=""/>-->
-                <Button.Content>Excel</Button.Content>
+                <Image Source="Resources/excel.png"/>
             </Button>
             <Separator Margin="0"/>
         </StackPanel>

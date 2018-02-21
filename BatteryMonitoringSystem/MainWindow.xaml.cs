@@ -11,7 +11,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using BatteryMonitoringSystem.Models;
 using Excel = Microsoft.Office.Interop.Excel;
-using System.Collections;
 
 namespace BatteryMonitoringSystem
 {
@@ -30,7 +29,7 @@ namespace BatteryMonitoringSystem
         private string gsmUserPin;
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
-        private Excel.Window excelWindow;
+        static Barrier barrier = new Barrier(3);
 
         public MainWindow()
         {
@@ -40,7 +39,7 @@ namespace BatteryMonitoringSystem
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             autoModePanel = new AutoModePanel();
             manualModePanel = new ManualModePanel();
-            manualModePanel.getRangeMessageBtn.Click += (s, e) => { GetListMessage(manualModePanel.choosePhoneNumber.SelectedItem.ToString(), manualModePanel.FormSmsCommand(CommandCode.RangeMessage)); };
+            manualModePanel.getRangeMessageBtn.Click += (s, e) => { GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(), manualModePanel.FormSmsCommand(CommandCode.RangeMessage)); };
             manualModePanel.getLastMessageBtn.Click += (s, e) => { GetListMessage(manualModePanel.choosePhoneNumber.SelectedItem.ToString(), manualModePanel.FormSmsCommand(CommandCode.LastMessage)); };
             comPortSettingsPanel = new ComPortSettingsPanel();
             comPortSettingsPanel.setComPortSettingsBtn.Click += (s, e) => { AcceptSettings(); };
@@ -107,7 +106,7 @@ namespace BatteryMonitoringSystem
 
         private void ReceivingResponseToRequest(object phoneNumber)
         {
-            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (ThreadStart)delegate ()
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
             {
                 try
                 {
@@ -180,7 +179,7 @@ namespace BatteryMonitoringSystem
                     manualModePanel.choosePhoneNumber.Items.Clear();
                     manualModePanel.choosePhoneNumber.Items.Add(new ComboBoxItem() { Visibility = Visibility.Collapsed, Content = "Выберите получателя" });
                     foreach (var source in choseInformationSource)
-                        manualModePanel.choosePhoneNumber.Items.Add(source);
+                        manualModePanel.choosePhoneNumber.Items.Add(new ComboBoxItem() { Content = source });
                     manualModePanel.choosePhoneNumber.SelectedIndex = 0;
                 }
                 Grid.SetRow(manualModePanel, 1);
@@ -326,6 +325,12 @@ namespace BatteryMonitoringSystem
 
         private void SaveDataToExcelFile(object sender, RoutedEventArgs e)
         {
+            var taskFactory = new TaskFactory();
+            Task task1 = taskFactory.StartNew(CreateExcelFile);
+            //for(int i = 0; i < choseInformationSource.Count; i++)
+                Task task2 = taskFactory.StartNew<List<ShortMessage>>(GetListMessageForPhoneNumber, choseInformationSource[0]);
+            barrier.SignalAndWait();
+
             if (choseInformationSource.Count > 0)
             {
                 excelApp = new Excel.Application();
@@ -366,12 +371,46 @@ namespace BatteryMonitoringSystem
                     }
 
                 }
+
                 excelWorkbook.SaveAs(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("dd-MM-yyyy H-mm-ss") + ".xlsx", Type.Missing, Type.Missing, Type.Missing, Type.Missing,
                     Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
 
                 programStatus.Text = "Excel файл успешно создан!";
                 excelApp.Quit();
             }
+        }
+
+        private void CreateExcelFile()
+        {
+            excelApp = new Excel.Application();
+            excelApp.SheetsInNewWorkbook = choseInformationSource.Count;
+            var excelWorkbook = excelApp.Workbooks.Add();
+            int index = 0;
+            foreach (Excel.Worksheet sheet in excelApp.Worksheets)
+            {
+                sheet.Name = choseInformationSource[index];
+                sheet.Cells[1, "A"] = "№";
+                sheet.Columns["A"].ColumnWidth = 5;
+                sheet.Cells[1, "B"] = "Дата";
+                sheet.Columns["B"].ColumnWidth = 30;
+                sheet.Cells[1, "C"] = "Время";
+                sheet.Columns["C"].ColumnWidth = 30;
+                sheet.Cells[1, "D"] = "Сообщение";
+                sheet.Columns["D"].ColumnWidth = 100;
+                index++;
+            }
+            barrier.SignalAndWait();
+        }
+
+        private List<ShortMessage> GetListMessageForPhoneNumber(object phoneNumber)
+        {
+            List<ShortMessage> listShortMessage = new List<ShortMessage>();
+            foreach (ShortMessage shortMessage in messagesHistoryView.Items)
+            {
+                if (shortMessage.Sender == phoneNumber.ToString())
+                    listShortMessage.Add(shortMessage);
+            }
+            return listShortMessage;
         }
     }
 }
