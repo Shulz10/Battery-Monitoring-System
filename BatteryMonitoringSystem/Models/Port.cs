@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.IO.Ports;
 using System.Text;
@@ -27,14 +28,14 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Open Com Port
-        public bool OpenComPort(string portName, int baudRate)
+        public bool OpenComPort()
         {
             receiveNow = new AutoResetEvent(false);
 
             try
             {
                 if (CustomSerialPort.IsOpen) customSerialPort.Close();
-                customSerialPort.BaudRate = baudRate;
+                customSerialPort.BaudRate = 115200;
                 customSerialPort.DataBits = 8;
 
                 customSerialPort.StopBits = StopBits.One;
@@ -45,20 +46,55 @@ namespace BatteryMonitoringSystem.Models
                 customSerialPort.WriteTimeout = 500;
 
                 customSerialPort.Encoding = Encoding.GetEncoding("windows-1251");
-                customSerialPort.PortName = portName;
+                customSerialPort.PortName = GetComPortName();
 
                 customSerialPort.DataReceived += SerialPort_DataReceived;
                 //customSerialPort.ErrorReceived += SerialPort_ErrorReceived;
 
                 customSerialPort.Open();
             }
-            catch (IOException er)
+            catch (Exception er)//(IOException er)
             {
-                MessageBox.Show("COM port error " + er.Message, "Error");
+                MessageBox.Show(er.Message, "Error");
                 return false;
             }
 
             return true;
+        }
+
+        private string GetComPortName()
+        {
+            List<string> availableComPorts = new List<string>();
+            foreach (string name in SerialPort.GetPortNames())
+                availableComPorts.Add(name);
+            try
+            {
+                if (availableComPorts.Count > 1)
+                {
+                    foreach (var name in availableComPorts)
+                    {
+                        if (!customSerialPort.IsOpen)
+                        {
+                            customSerialPort.PortName = name;
+                            customSerialPort.Open();
+                            if (ExecuteCommand("AT", 300, "No phone connected.").Contains("OK"))
+                            {
+                                CloseComPort();
+                                return name;
+                            }
+                            else CloseComPort();
+                        }
+                    }
+                    throw new ApplicationException();
+                }
+                else if (availableComPorts.Count == 0)
+                    throw new ApplicationException();
+                else return availableComPorts[0];
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
         //Close Com Port
@@ -149,11 +185,11 @@ namespace BatteryMonitoringSystem.Models
                     command = "AT+CPIN=" + PIN + "\r";
                     receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
                 }
-                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
+                receivedData = ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 command = "AT+CMGS=\"" + phoneNumber + "\"";
-                receivedData = ExecuteCommand(command, 300, "Failed to accept phone number.");
+                receivedData = ExecuteCommand(command, 500, "Failed to accept phone number.");
                 command = message + char.ConvertFromUtf32(26);
-                receivedData = ExecuteCommand(command, 3000, "Failed to send message.");
+                receivedData = ExecuteCommand(command, 6000, "Failed to send message.");
                 if (receivedData.EndsWith("\r\nOK\r\n"))
                     isSend = true;
                 else if (receivedData.Contains("ERROR"))
@@ -206,8 +242,8 @@ namespace BatteryMonitoringSystem.Models
                     receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
                 }
                 receivedData = ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
-                //receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
-                receivedData = ExecuteCommand("AT+CPMS?", 1000, "Failed to count SMS message.");
+                receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                receivedData = ExecuteCommand("AT+CPMS?", 50000, "Failed to count SMS message.");
                 if (receivedData.Length >= 45 && receivedData.StartsWith("AT+CPMS?"))
                     CountSMSMessages = Convert.ToInt32(receivedData.Split(',')[1]);
                 else if (receivedData.Contains("ERROR"))
@@ -243,10 +279,10 @@ namespace BatteryMonitoringSystem.Models
                     receivedData = ExecuteCommand(command, 300, "Invalid PIN.");
                 }
                 receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
-                receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");//AT+CPMS="SM","SM","SM"
                 receivedData = ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
                 receivedData = ExecuteCommand("AT+CPMS=\"SM\"", 300, "Failed to select message storage.");
-                string input = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 5000, "Failed to read the messages.");
+                string input = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 30000, "Failed to read the messages.");
 
                 #region Parse Messages
                 messages = ParseMessages(input);

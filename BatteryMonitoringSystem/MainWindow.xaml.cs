@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using BatteryMonitoringSystem.Models;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.IO.Ports;
 
 namespace BatteryMonitoringSystem
 {
@@ -25,25 +26,37 @@ namespace BatteryMonitoringSystem
         private ManualModePanel manualModePanel;
         private ComPortSettingsPanel comPortSettingsPanel;
         private List<string> choseInformationSource;
+        private Queue<string> sourceRequestMessages;
         private List<ShortMessage> unreadShortMessages;
         private string gsmUserPin;
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         static Barrier barrier = new Barrier(3);
+        private DispatcherTimer dispatcherTimer;
 
         public MainWindow()
         {
-            InitializeComponent();
-
+            InitializeComponent();       
+            
             informationSourcePanel = new InformationSourcePanel(messagesHistoryView);
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             autoModePanel = new AutoModePanel();
             manualModePanel = new ManualModePanel();
             manualModePanel.getRangeMessageBtn.Click += (s, e) => { GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(), manualModePanel.FormSmsCommand(CommandCode.RangeMessage)); };
-            manualModePanel.getLastMessageBtn.Click += (s, e) => { GetListMessage(manualModePanel.choosePhoneNumber.SelectedItem.ToString(), manualModePanel.FormSmsCommand(CommandCode.LastMessage)); };
+            manualModePanel.getLastMessageBtn.Click += (s, e) => { GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(), manualModePanel.FormSmsCommand(CommandCode.LastMessage)); };
             comPortSettingsPanel = new ComPortSettingsPanel();
             comPortSettingsPanel.setComPortSettingsBtn.Click += (s, e) => { AcceptSettings(); };
             gsmUserPin = "";
+
+            dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Interval = TimeSpan.FromSeconds(30);
+            dispatcherTimer.Tick += DispatcherTimer_Tick;
+        }
+
+        private void DispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            Thread listeningThread = new Thread(new ParameterizedThreadStart(ReceivingResponseToRequest));
+            listeningThread.Start(sourceRequestMessages.Dequeue());
         }
 
         private void SetInformationSource()
@@ -86,27 +99,35 @@ namespace BatteryMonitoringSystem
         private void AcceptSettings()
         {
             customComPort = Port.GetComPort();
-            if (customComPort.OpenComPort("COM" + comPortSettingsPanel.comPortName.Text, Convert.ToInt32(comPortSettingsPanel.comPortBaudRate.Text)))
+            if (customComPort.OpenComPort())
                 programStatus.Text = "Connected at " + customComPort.CustomSerialPort.PortName;
         }
 
         private void GetListMessage(string phoneNumber, string command)
         {
-            if (command.StartsWith("Ошибка"))
-                programStatus.Text = command;
-            else if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
+            try
             {
-                Thread listeningThread = new Thread(new ParameterizedThreadStart(ReceivingResponseToRequest));
-                listeningThread.Start(phoneNumber);
-                programStatus.Text = "Message has sent successfully";
+                if (command.StartsWith("Ошибка"))
+                    programStatus.Text = command;
+                else if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
+                {
+                    sourceRequestMessages = new Queue<string>();
+                    sourceRequestMessages.Enqueue(phoneNumber);
+                    dispatcherTimer.Start();
+                    programStatus.Text = "Message has sent successfully";
+                }
+                else
+                    programStatus.Text = "Failed to send message!";
             }
-            else
-                programStatus.Text = "Failed to send message!";
+            catch(Exception ex)
+            {
+                programStatus.Text = ex.Message;
+            }
         }
 
         private void ReceivingResponseToRequest(object phoneNumber)
         {
-            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
             {
                 try
                 {

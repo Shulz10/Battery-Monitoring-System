@@ -97,13 +97,12 @@ namespace BatteryMonitoringSystem
 
             if (phoneNumber.Length == 13 && phoneNumber.StartsWith("+"))
             {
-                phoneNumber = String.Join("", phoneNumber.Select((number) => ConvertDecimalNumberToHex(number, 2)));
                 switch (commandCode)
                 {
                     case CommandCode.RangeMessage:
                         {
                             if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
-                                command = "1" + phoneNumber + ConvertDecimalNumberToHex(fromN, 8) + "01" + "00000000";
+                                command = phoneNumber + "1" + ConvertDecimalNumberToHex(fromN, 8) + "01" + "00000000";
                             else
                             {
                                 if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text == "")
@@ -122,13 +121,13 @@ namespace BatteryMonitoringSystem
                                         return "Ошибка! Проверьте правильность введенных данных.";
                                 }
 
-                                command = "2" + phoneNumber + ConvertDecimalNumberToHex(fromN, 8) +
+                                command = phoneNumber + "2" + ConvertDecimalNumberToHex(fromN, 8) +
                                     ConvertDecimalNumberToHex(messageCount, 2) + ConvertDecimalNumberToHex(beforeN, 8);
                             }
                             break;
                         }
                     case CommandCode.LastMessage:
-                        command = "0" + phoneNumber;
+                        command = phoneNumber + "0";
                         break;
                 }
             }

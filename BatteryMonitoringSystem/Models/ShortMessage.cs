@@ -58,10 +58,10 @@ namespace BatteryMonitoringSystem.Models
             messageNumber = int.Parse(messageBody.Substring(0, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber);
 
             var t = TimeSpan.FromSeconds(int.Parse(messageBody.Substring(8, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber));
-            receivedDateTime.AddDays(t.Days);
-            receivedDateTime.AddHours(t.Hours);
-            receivedDateTime.AddMinutes(t.Minutes);
-            receivedDateTime.AddSeconds(t.Seconds);
+            receivedDateTime = receivedDateTime.AddDays(t.Days);
+            receivedDateTime = receivedDateTime.AddHours(t.Hours);
+            receivedDateTime = receivedDateTime.AddMinutes(t.Minutes);
+            receivedDateTime = receivedDateTime.AddSeconds(t.Seconds);
 
             string[] packages = new string[4];
             for (int i = 0; i < 4; i++)
