@@ -56,7 +56,7 @@ namespace BatteryMonitoringSystem.Models
         private void ParseShortMessageBody(string messageBody)
         {
             messageNumber = int.Parse(messageBody.Substring(0, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber);
-            messageNumber += messageBody[9] == 0 ? 0.1 : 0.2;
+            messageNumber += messageBody[8] == 0 ? 0.1 : 0.2;
 
             var t = TimeSpan.FromSeconds(int.Parse(messageBody.Substring(9, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber));
             receivedDateTime = receivedDateTime.AddDays(t.Days);

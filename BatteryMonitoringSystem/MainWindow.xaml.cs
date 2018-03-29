@@ -11,7 +11,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using BatteryMonitoringSystem.Models;
 using Excel = Microsoft.Office.Interop.Excel;
-using System.IO.Ports;
 
 namespace BatteryMonitoringSystem
 {
@@ -22,9 +21,7 @@ namespace BatteryMonitoringSystem
     {
         private Port customComPort;
         private InformationSourcePanel informationSourcePanel;
-        //private AutoModePanel autoModePanel;
         private ManualModePanel manualModePanel;
-        //private ComPortSettingsPanel comPortSettingsPanel;
         private List<string> choseInformationSource;
         private Queue<string> sourceRequestMessages;
         private List<ShortMessage> unreadShortMessages;
@@ -40,7 +37,6 @@ namespace BatteryMonitoringSystem
             
             informationSourcePanel = new InformationSourcePanel(messagesHistoryView);
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
-            //autoModePanel = new AutoModePanel();
             manualModePanel = new ManualModePanel();
             manualModePanel.getRangeMessageBtn.Click += (s, e) => {
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
@@ -51,8 +47,6 @@ namespace BatteryMonitoringSystem
                     manualModePanel.FormSmsCommand(CommandCode.LastMessage));
             };
 
-            //comPortSettingsPanel = new ComPortSettingsPanel();
-            //comPortSettingsPanel.setComPortSettingsBtn.Click += (s, e) => { AcceptSettings(); };
             gsmUserPin = "";
 
             dispatcherTimer = new DispatcherTimer
@@ -64,15 +58,13 @@ namespace BatteryMonitoringSystem
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Thread setComPortConnectionThread = new Thread(SetConnectionToComPortAsync)
-            {
-                IsBackground = true
-            };
-            setComPortConnectionThread.Start();
+            customComPort = Port.GetComPort();
+            programStatus.Text = customComPort.OpenComPort() ? "Подключение установлено по порту " + customComPort.CustomSerialPort.PortName : "Подключение не установлено. Проверьте соединение с GSM модемом.";
         }
 
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
+            dispatcherTimer.Stop();
             Thread listeningThread = new Thread(new ParameterizedThreadStart(ReceivingResponseToRequest));
             listeningThread.Start(sourceRequestMessages.Dequeue());
         }
@@ -112,17 +104,6 @@ namespace BatteryMonitoringSystem
                 else
                     MessageBox.Show("None of the information sources is selected!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-        }
-
-        private async void SetConnectionToComPortAsync()
-        {
-            customComPort = Port.GetComPort();
-            await programStatus.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                new Action<bool>(delegate (bool isOpen)
-                {
-                    programStatus.Text = isOpen ? "Подключение установлено по порту " + customComPort.CustomSerialPort.PortName : "Подключение не установлено. Ожидайте завершения процесса установки соединения.";
-                    
-                }), customComPort.OpenComPort());
         }
 
         private void GetListMessage(string phoneNumber, string command)
@@ -194,23 +175,6 @@ namespace BatteryMonitoringSystem
             }            
         }
 
-        /*private void OpenListAutoModeParameters(object sender, RoutedEventArgs e)
-        {
-            if (!autoModePanel.IsPressed)
-            {
-                ChangeButtonBackgroundColor((sender as Button).Name);
-                autoModePanel.IsPressed = true;
-                Grid.SetRow(autoModePanel, 1);
-                Grid.SetColumn(autoModePanel, 1);
-                grid.Children.Add(autoModePanel);
-            }
-            else
-            {
-                (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
-                autoModePanel.IsPressed = false;
-            }
-        }*/
-
         private void OpenListManualModeParameters(object sender, RoutedEventArgs e)
         {
             if (!manualModePanel.IsPressed)
@@ -235,23 +199,6 @@ namespace BatteryMonitoringSystem
                 manualModePanel.IsPressed = false;
             }
         }
-
-        /*private void SetComPortSettings(object sender, RoutedEventArgs e)
-        {
-            if (!comPortSettingsPanel.IsPressed)
-            {
-                ChangeButtonBackgroundColor((sender as Button).Name);
-                comPortSettingsPanel.IsPressed = true;
-                Grid.SetRow(comPortSettingsPanel, 1);
-                Grid.SetColumn(comPortSettingsPanel, 1);
-                grid.Children.Add(comPortSettingsPanel);
-            }
-            else
-            {
-                (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
-                comPortSettingsPanel.IsPressed = false;
-            }
-        }*/
 
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
         {

@@ -53,9 +53,11 @@ namespace BatteryMonitoringSystem.Models
 
                 customSerialPort.Open();
             }
-            catch (Exception er)//(IOException er)
+            catch(Exception error)
             {
-                MessageBox.Show(er.Message, "Error");
+                if(error is UnauthorizedAccessException)
+                    MessageBox.Show($"Доступ к порту {customSerialPort.PortName} запрещен", "Ошибка"); //Access to the port COM4 is denied
+                else MessageBox.Show(error.Message, "Ошибка");
                 return false;
             }
 
@@ -77,7 +79,7 @@ namespace BatteryMonitoringSystem.Models
                         {
                             customSerialPort.PortName = name;
                             customSerialPort.Open();
-                            if (ExecuteCommand("AT", 300, "No phone connected.").Contains("OK"))
+                            if (ExecuteCommand("AT", 300, "GSM модем не подключен.").Contains("OK"))
                             {
                                 CloseComPort();
                                 return name;
@@ -85,10 +87,10 @@ namespace BatteryMonitoringSystem.Models
                             else CloseComPort();
                         }
                     }
-                    throw new ApplicationException();
+                    throw new ApplicationException("GSM модем не подключен.");
                 }
                 else if (availableComPorts.Count == 0)
-                    throw new ApplicationException();
+                    throw new ApplicationException("Отсутствуют соединения по COM-портам.");
                 else return availableComPorts[0];
             }
             catch(Exception ex)

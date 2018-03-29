@@ -95,24 +95,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AutoModePanel.xaml.cs">
-      <DependentUpon>AutoModePanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Models\CommandCode.cs" />
-    <Compile Include="ComPortSettingsPanel.xaml.cs">
-      <DependentUpon>ComPortSettingsPanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="InformationSourcePanel.xaml.cs">
       <DependentUpon>InformationSourcePanel.xaml</DependentUpon>
     </Compile>
-    <Page Include="AutoModePanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ComPortSettingsPanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="InputPINWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

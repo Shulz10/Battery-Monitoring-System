@@ -34,10 +34,6 @@
                 <Image Source="Resources/phone-receiver.png"/>
             </Button>
             <Separator Margin="0"/>
-            <!--<Button x:Name="autoModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Автоматический режим работы" Click="OpenListAutoModeParameters" MouseEnter="SideMenuBtn_MouseEnter" MouseLeave="SideMenuBtn_MouseLeave">
-                <Image Source="Resources/cogwheels.png"/>
-            </Button>
-            <Separator Margin="0"/>-->
             <Button x:Name="manualModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Ручной режим работы" Click="OpenListManualModeParameters">
                 <Image Source="Resources/handshake.png"/>
             </Button>
@@ -46,10 +42,6 @@
                 <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
             </Button>
             <Separator Margin="0"/>
-            <!--<Button x:Name="comPortSettingsBtn" Background="Transparent" BorderThickness="0" ToolTip="Настройка COM-порта" Click="SetComPortSettings">
-                <Image Source="Resources/vspc-icon-256.png"/>
-            </Button>
-            <Separator Margin="0"/>-->
             <Button x:Name="saveToExcelFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Сохранить историю сообщений в файл" Click="SaveDataToExcelFile">
                 <Image Source="Resources/excel.png"/>
             </Button>
