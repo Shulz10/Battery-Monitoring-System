@@ -22,9 +22,9 @@ namespace BatteryMonitoringSystem
     {
         private Port customComPort;
         private InformationSourcePanel informationSourcePanel;
-        private AutoModePanel autoModePanel;
+        //private AutoModePanel autoModePanel;
         private ManualModePanel manualModePanel;
-        private ComPortSettingsPanel comPortSettingsPanel;
+        //private ComPortSettingsPanel comPortSettingsPanel;
         private List<string> choseInformationSource;
         private Queue<string> sourceRequestMessages;
         private List<ShortMessage> unreadShortMessages;
@@ -40,17 +40,35 @@ namespace BatteryMonitoringSystem
             
             informationSourcePanel = new InformationSourcePanel(messagesHistoryView);
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
-            autoModePanel = new AutoModePanel();
+            //autoModePanel = new AutoModePanel();
             manualModePanel = new ManualModePanel();
-            manualModePanel.getRangeMessageBtn.Click += (s, e) => { GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(), manualModePanel.FormSmsCommand(CommandCode.RangeMessage)); };
-            manualModePanel.getLastMessageBtn.Click += (s, e) => { GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(), manualModePanel.FormSmsCommand(CommandCode.LastMessage)); };
-            comPortSettingsPanel = new ComPortSettingsPanel();
-            comPortSettingsPanel.setComPortSettingsBtn.Click += (s, e) => { AcceptSettings(); };
+            manualModePanel.getRangeMessageBtn.Click += (s, e) => {
+                GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
+                    manualModePanel.FormSmsCommand(CommandCode.RangeMessage));
+            };
+            manualModePanel.getLastMessageBtn.Click += (s, e) => {
+                GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
+                    manualModePanel.FormSmsCommand(CommandCode.LastMessage));
+            };
+
+            //comPortSettingsPanel = new ComPortSettingsPanel();
+            //comPortSettingsPanel.setComPortSettingsBtn.Click += (s, e) => { AcceptSettings(); };
             gsmUserPin = "";
 
-            dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Interval = TimeSpan.FromSeconds(30);
+            dispatcherTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(60)
+            };
             dispatcherTimer.Tick += DispatcherTimer_Tick;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            Thread setComPortConnectionThread = new Thread(SetConnectionToComPortAsync)
+            {
+                IsBackground = true
+            };
+            setComPortConnectionThread.Start();
         }
 
         private void DispatcherTimer_Tick(object sender, EventArgs e)
@@ -96,11 +114,15 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void AcceptSettings()
+        private async void SetConnectionToComPortAsync()
         {
             customComPort = Port.GetComPort();
-            if (customComPort.OpenComPort())
-                programStatus.Text = "Connected at " + customComPort.CustomSerialPort.PortName;
+            await programStatus.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                new Action<bool>(delegate (bool isOpen)
+                {
+                    programStatus.Text = isOpen ? "Подключение установлено по порту " + customComPort.CustomSerialPort.PortName : "Подключение не установлено. Ожидайте завершения процесса установки соединения.";
+                    
+                }), customComPort.OpenComPort());
         }
 
         private void GetListMessage(string phoneNumber, string command)
@@ -172,7 +194,7 @@ namespace BatteryMonitoringSystem
             }            
         }
 
-        private void OpenListAutoModeParameters(object sender, RoutedEventArgs e)
+        /*private void OpenListAutoModeParameters(object sender, RoutedEventArgs e)
         {
             if (!autoModePanel.IsPressed)
             {
@@ -187,7 +209,7 @@ namespace BatteryMonitoringSystem
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 autoModePanel.IsPressed = false;
             }
-        }
+        }*/
 
         private void OpenListManualModeParameters(object sender, RoutedEventArgs e)
         {
@@ -214,7 +236,7 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void SetComPortSettings(object sender, RoutedEventArgs e)
+        /*private void SetComPortSettings(object sender, RoutedEventArgs e)
         {
             if (!comPortSettingsPanel.IsPressed)
             {
@@ -229,7 +251,7 @@ namespace BatteryMonitoringSystem
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 comPortSettingsPanel.IsPressed = false;
             }
-        }
+        }*/
 
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
         {
@@ -282,10 +304,6 @@ namespace BatteryMonitoringSystem
                 }
             }
         }
-
-        private void SideMenuBtn_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e) => programStatus.Text = (sender as Button).ToolTip.ToString();
-
-        private void SideMenuBtn_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e) => programStatus.Text = "";
 
         private void MessagesHistoryView_SizeChanged(object sender, SizeChangedEventArgs e)
         {

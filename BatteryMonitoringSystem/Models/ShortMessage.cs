@@ -7,14 +7,14 @@ namespace BatteryMonitoringSystem.Models
     public class ShortMessage
     {
         #region Private Variable
-        private int messageNumber;
+        private double messageNumber;
         private string sender;
         private DateTime receivedDateTime;
         private string message;
         #endregion
 
         #region Public Properties
-        public int MessageNumber
+        public double MessageNumber
         {
             get { return messageNumber; }
             set { messageNumber = value; }
@@ -53,11 +53,12 @@ namespace BatteryMonitoringSystem.Models
         }
         #endregion
         
-        public void ParseShortMessageBody(string messageBody)
+        private void ParseShortMessageBody(string messageBody)
         {
             messageNumber = int.Parse(messageBody.Substring(0, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber);
+            messageNumber += messageBody[9] == 0 ? 0.1 : 0.2;
 
-            var t = TimeSpan.FromSeconds(int.Parse(messageBody.Substring(8, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber));
+            var t = TimeSpan.FromSeconds(int.Parse(messageBody.Substring(9, 8).TrimStart('0'), System.Globalization.NumberStyles.HexNumber));
             receivedDateTime = receivedDateTime.AddDays(t.Days);
             receivedDateTime = receivedDateTime.AddHours(t.Hours);
             receivedDateTime = receivedDateTime.AddMinutes(t.Minutes);
@@ -65,7 +66,7 @@ namespace BatteryMonitoringSystem.Models
 
             string[] packages = new string[4];
             for (int i = 0; i < 4; i++)
-                packages[i] = messageBody.Substring(15 + i * 24, 24);
+                packages[i] = messageBody.Substring(16 + i * 24, 24);
 
             for (int i = 0; i < packages.Length; i++)
             {
