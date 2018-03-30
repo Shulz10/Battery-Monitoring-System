@@ -31,7 +31,7 @@ namespace BatteryMonitoringSystem
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         static Barrier barrier = new Barrier(3);
-        private DispatcherTimer dispatcherTimer;
+        private Timer[] timers = new Timer[10];
 
         public MainWindow()
         {
@@ -50,12 +50,6 @@ namespace BatteryMonitoringSystem
             };
 
             gsmUserPin = "";
-
-            dispatcherTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(60)
-            };
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -74,12 +68,6 @@ namespace BatteryMonitoringSystem
                 else MessageBox.Show(ex.Message, "Ошибка");
                 programStatus.Text = "Подключение не установлено. Проверьте соединение с GSM модемом.";
             }
-        }
-
-        private void DispatcherTimer_Tick(object sender, EventArgs e)
-        {
-            dispatcherTimer.Stop();
-            ThreadPool.QueueUserWorkItem(ReceivingResponseToRequest, sourceRequestMessages.Dequeue());
         }
 
         private void SetInformationSource()
@@ -132,13 +120,19 @@ namespace BatteryMonitoringSystem
                         countExpectedMessages = 1;
                     else countExpectedMessages = Convert.ToInt32(manualModePanel.messageCountTxt.Text);
 
-                    if (currentMessageCount + countExpectedMessages > maxMessageCountInStorage)
+                    if (currentMessageCount + countExpectedMessages * 2 > maxMessageCountInStorage)
                         customComPort.ClearMessageStorage();
 
                     customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
                     sourceRequestMessages = new Queue<string>();
                     sourceRequestMessages.Enqueue(phoneNumber);
-                    dispatcherTimer.Start();
+
+                    int index = Array.IndexOf(timers, null);
+                    if (index != -1)
+                    {
+                        timers[index] = new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000);
+                    }
+
                     programStatus.Text = "Сообщение отправлено успешно";//Message has sent successfully
                 }
             }
