@@ -159,33 +159,24 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Send Message
-        public bool SendMessage(string phoneNumber, ref string PIN, string message)
+        public void SendMessage(string phoneNumber, ref string PIN, string message)
         {
-            bool isSend = false;
-
             try
             {
-                string receivedData = ExecuteCommand("AT", 300, "No phone connected.");                
-                receivedData = ExecuteCommand("AT+CPIN?", 300, "");
-                if (receivedData.Contains("OK"))
+                ExecuteCommand("AT", 300, "No phone connected.");                
+                ExecuteCommand("AT+CPIN?", 300, "");
+                if (PIN == "")
                 {
-                    if (PIN == "")
-                    {
-                        InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                        if (inputPINWindow.ShowDialog() == true)
-                            PIN = inputPINWindow.PIN.Text;
-                        else return isSend;
-                    }
-                    receivedData = ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
+                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                    if (inputPINWindow.ShowDialog() == true)
+                        PIN = inputPINWindow.PIN.Text;
+                    else
+                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
                 }
-                receivedData = ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
-                receivedData = ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Failed to accept phone number.");
-                receivedData = ExecuteCommand(message + char.ConvertFromUtf32(26), 6000, "Failed to send message.");
-                if (receivedData.EndsWith("\r\nOK\r\n"))
-                    isSend = true;
-                else if (receivedData.Contains("ERROR"))
-                    isSend = false;
-                return isSend;
+                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
+                ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
+                ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Failed to accept phone number.");
+                ExecuteCommand(message + char.ConvertFromUtf32(26), 6000, "Failed to send message.");
             }
             catch(Exception ex)
             {
@@ -251,27 +242,24 @@ namespace BatteryMonitoringSystem.Models
             List<ShortMessage> messages = null;
             try
             {
-                string receivedData = ExecuteCommand("AT", 300, "No phone connected.");
-                receivedData = ExecuteCommand("AT+CPIN?", 300, "");
-                if (receivedData.Contains("OK"))
+                ExecuteCommand("AT", 300, "No phone connected.");
+                ExecuteCommand("AT+CPIN?", 300, "");
+                if (PIN == "")
                 {
-                    if (PIN == "")
-                    {
-                        InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                        if (inputPINWindow.ShowDialog() == true)
-                            PIN = inputPINWindow.PIN.Text;
-                        else return null;
-                    }
-                    receivedData = ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
+                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                    if (inputPINWindow.ShowDialog() == true)
+                        PIN = inputPINWindow.PIN.Text;
+                    else return null;
                 }
-                receivedData = ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
-                receivedData = ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");//AT+CPMS="SM","SM","SM"
-                receivedData = ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
-                receivedData = ExecuteCommand("AT+CPMS=\"SM\"", 300, "Failed to select message storage.");
-                string input = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 30000, "Failed to read the messages.");
+                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
+                ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
+                ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
+                ExecuteCommand("AT+CPMS=\"SM\"", 300, "Failed to select message storage.");
+                string response = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 30000, "Failed to read the messages.");
 
                 #region Parse Messages
-                messages = ParseMessages(input);
+                messages = ParseMessages(response);
                 #endregion
             }
             catch (Exception ex)

@@ -125,15 +125,13 @@ namespace BatteryMonitoringSystem
             {
                 if (command.StartsWith("Ошибка"))
                     programStatus.Text = command;
-                else if (customComPort.SendMessage(phoneNumber, ref gsmUserPin, command))
-                {
+                else {
+                    customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
                     sourceRequestMessages = new Queue<string>();
                     sourceRequestMessages.Enqueue(phoneNumber);
                     dispatcherTimer.Start();
                     programStatus.Text = "Message has sent successfully";
                 }
-                else
-                    programStatus.Text = "Failed to send message!";
             }
             catch(Exception ex)
             {
