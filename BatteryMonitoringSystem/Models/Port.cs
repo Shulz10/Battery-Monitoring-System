@@ -301,6 +301,20 @@ namespace BatteryMonitoringSystem.Models
                 return null;
         }
 
+        //Clear SMS storage
+        public void ClearMessageStorage(ref string PIN)
+        {
+            try
+            {
+                int currentCountMessageInStorage = CountSMSMessages(ref PIN);
+                ExecuteCommand($"AT+CMGD={currentCountMessageInStorage},1", 500, "Failed to clear SMS storage");
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         //Parse Messages
         public List<ShortMessage> ParseMessages(string input)
         {
