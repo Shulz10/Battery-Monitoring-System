@@ -65,8 +65,7 @@ namespace BatteryMonitoringSystem
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             dispatcherTimer.Stop();
-            Thread listeningThread = new Thread(new ParameterizedThreadStart(ReceivingResponseToRequest));
-            listeningThread.Start(sourceRequestMessages.Dequeue());
+            ThreadPool.QueueUserWorkItem(ReceivingResponseToRequest, sourceRequestMessages.Dequeue());
         }
 
         private void SetInformationSource()
