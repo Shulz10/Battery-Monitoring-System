@@ -125,12 +125,21 @@ namespace BatteryMonitoringSystem
             {
                 if (command.StartsWith("Ошибка"))
                     programStatus.Text = command;
-                else {
+                else
+                {
+                    int countExpectedMessages;
+                    if (command == phoneNumber + "0")
+                        countExpectedMessages = 1;
+                    else countExpectedMessages = Convert.ToInt32(manualModePanel.messageCountTxt.Text);
+
+                    if (currentMessageCount + countExpectedMessages > maxMessageCountInStorage)
+                        customComPort.ClearMessageStorage();
+
                     customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
                     sourceRequestMessages = new Queue<string>();
                     sourceRequestMessages.Enqueue(phoneNumber);
                     dispatcherTimer.Start();
-                    programStatus.Text = "Message has sent successfully";
+                    programStatus.Text = "Сообщение отправлено успешно";//Message has sent successfully
                 }
             }
             catch(Exception ex)
@@ -148,6 +157,7 @@ namespace BatteryMonitoringSystem
                     customComPort.GetCountSMSMessagesInStorage(out int messageCount);
                     if (messageCount - currentMessageCount > 0)
                     {
+                        currentMessageCount = messageCount;
                         unreadShortMessages = customComPort.ReadSMS(ref gsmUserPin);
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber as string);
                         if (unreadShortMessages != null)

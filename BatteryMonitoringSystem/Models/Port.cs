@@ -274,7 +274,7 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Clear SMS storage
-        public void ClearMessageStorage(ref string PIN)
+        public void ClearMessageStorage()
         {
             try
             {
