@@ -25,6 +25,8 @@ namespace BatteryMonitoringSystem
         private List<string> choseInformationSource;
         private Queue<string> sourceRequestMessages;
         private List<ShortMessage> unreadShortMessages;
+        private int currentMessageCount;
+        private int maxMessageCountInStorage;
         private string gsmUserPin;
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
@@ -58,8 +60,20 @@ namespace BatteryMonitoringSystem
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            customComPort = Port.GetComPort();
-            programStatus.Text = customComPort.OpenComPort() ? "Подключение установлено по порту " + customComPort.CustomSerialPort.PortName : "Подключение не установлено. Проверьте соединение с GSM модемом.";
+            try
+            {
+                customComPort = Port.GetComPort();
+                customComPort.OpenComPort();            
+                programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
+                customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
+            }
+            catch(Exception ex)
+            {
+                if (ex is UnauthorizedAccessException)
+                    MessageBox.Show($"Доступ к порту {customComPort.CustomSerialPort.PortName} запрещен", "Ошибка"); //Access to the port COM4 is denied
+                else MessageBox.Show(ex.Message, "Ошибка");
+                programStatus.Text = "Подключение не установлено. Проверьте соединение с GSM модемом.";
+            }
         }
 
         private void DispatcherTimer_Tick(object sender, EventArgs e)
@@ -133,7 +147,8 @@ namespace BatteryMonitoringSystem
             {
                 try
                 {
-                    if (customComPort.CountSMSMessages(ref gsmUserPin) > 0)
+                    customComPort.GetCountSMSMessagesInStorage(out int messageCount);
+                    if (messageCount - currentMessageCount > 0)
                     {
                         unreadShortMessages = customComPort.ReadSMS(ref gsmUserPin);
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber as string);
