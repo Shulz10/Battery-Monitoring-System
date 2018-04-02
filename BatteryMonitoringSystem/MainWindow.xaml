@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BatteryMonitoringSystem"
         mc:Ignorable="d"
-        Height="600" Width="1135" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+        Height="600" Width="1135" WindowStartupLocation="CenterScreen">
     <Grid x:Name="grid">
         <Grid.RowDefinitions>
             <RowDefinition Height="85"></RowDefinition>

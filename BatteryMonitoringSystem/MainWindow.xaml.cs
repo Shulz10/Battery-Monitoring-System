@@ -42,10 +42,14 @@ namespace BatteryMonitoringSystem
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             manualModePanel = new ManualModePanel();
             manualModePanel.getRangeMessageBtn.Click += (s, e) => {
+                if(!customComPort.CustomSerialPort.IsOpen)
+                    ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.RangeMessage));
             };
             manualModePanel.getLastMessageBtn.Click += (s, e) => {
+                if (!customComPort.CustomSerialPort.IsOpen)
+                    ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.LastMessage));
             };
@@ -54,13 +58,14 @@ namespace BatteryMonitoringSystem
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void ComPortInitialization()
         {
             try
             {
                 customComPort = Port.GetComPort();
-                customComPort.OpenComPort();            
+                customComPort.OpenComPort();
                 programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
+
                 customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
                 if (currentMessageCount > 0)
                 {
@@ -68,7 +73,7 @@ namespace BatteryMonitoringSystem
                     currentMessageCount = 0;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (ex is UnauthorizedAccessException)
                     MessageBox.Show($"Доступ к порту {customComPort.CustomSerialPort.PortName} запрещен", "Ошибка"); //Access to the port COM4 is denied
