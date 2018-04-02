@@ -42,13 +42,11 @@ namespace BatteryMonitoringSystem
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             manualModePanel = new ManualModePanel();
             manualModePanel.getRangeMessageBtn.Click += (s, e) => {
-                if(!customComPort.CustomSerialPort.IsOpen)
                     ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.RangeMessage));
             };
             manualModePanel.getLastMessageBtn.Click += (s, e) => {
-                if (!customComPort.CustomSerialPort.IsOpen)
                     ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.LastMessage));
@@ -63,8 +61,11 @@ namespace BatteryMonitoringSystem
             try
             {
                 customComPort = Port.GetComPort();
-                customComPort.OpenComPort();
-                programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
+                if (!customComPort.CustomSerialPort.IsOpen)
+                {
+                    customComPort.OpenComPort();
+                    programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
+                }
 
                 customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
                 if (currentMessageCount > 0)
@@ -134,11 +135,11 @@ namespace BatteryMonitoringSystem
 
                     if (currentMessageCount + countExpectedMessages * 2 > maxMessageCountInStorage)
                         customComPort.ClearMessageStorage();
+                   
+                    customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
                     requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
                         new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
-
-                    customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
                     /*int index = Array.IndexOf(timers, null);
                     if (index != -1)

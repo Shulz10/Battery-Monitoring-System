@@ -209,7 +209,7 @@ namespace BatteryMonitoringSystem.Models
             {
                 ExecuteCommand("AT", 500, "No phone connected.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
-                ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");//"AT+CPMS=\"SM\",\"SM\",\"SM\""
                 string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Failed to count SMS message.").Split(',');
                 currentMessageCountInStorage = Convert.ToInt32(parsedReceivedData[1]);
                 maxMessageCountInStorage = Convert.ToInt32(parsedReceivedData[2]);
@@ -226,7 +226,7 @@ namespace BatteryMonitoringSystem.Models
             {
                 ExecuteCommand("AT", 500, "No phone connected.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
-                ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");//"AT+CPMS=\"SM\",\"SM\",\"SM\""
                 string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Failed to count SMS message.").Split(',');
                 currentMessageCountInStorage = Convert.ToInt32(parsedReceivedData[1]);
             }
@@ -253,9 +253,9 @@ namespace BatteryMonitoringSystem.Models
                 }
                 ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
-                ExecuteCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", 500, "");
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");//"AT+CPMS=\"SM\",\"SM\",\"SM\""
                 ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
-                ExecuteCommand("AT+CPMS=\"SM\"", 300, "Failed to select message storage.");
+                ExecuteCommand("AT+CPMS=\"ME\"", 300, "Failed to select message storage.");//"AT+CPMS=\"SM\""
                 string response = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 30000, "Failed to read the messages.");
 
                 #region Parse Messages
