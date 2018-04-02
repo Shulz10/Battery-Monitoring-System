@@ -140,6 +140,7 @@
     <Compile Include="Models\Information.cs" />
     <Compile Include="Models\InformationSource.cs" />
     <Compile Include="Models\ShortMessage.cs" />
+    <Compile Include="Models\SmsRequest.cs" />
     <Compile Include="Models\SystemDbContext.cs" />
     <Compile Include="NewPhoneWindow.xaml.cs">
       <DependentUpon>NewPhoneWindow.xaml</DependentUpon>

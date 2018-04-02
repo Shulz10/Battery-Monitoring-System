@@ -23,7 +23,7 @@ namespace BatteryMonitoringSystem
         private InformationSourcePanel informationSourcePanel;
         private ManualModePanel manualModePanel;
         private List<string> choseInformationSource;
-        private Queue<string> sourceRequestMessages;
+        //private Queue<string> sourceRequestMessages;
         private List<ShortMessage> unreadShortMessages;
         private int currentMessageCount;
         private int maxMessageCountInStorage;
@@ -32,6 +32,8 @@ namespace BatteryMonitoringSystem
         private Excel.Application excelApp;
         static Barrier barrier = new Barrier(3);
         private Timer[] timers = new Timer[10];
+
+        private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
         public MainWindow()
         {
@@ -50,6 +52,7 @@ namespace BatteryMonitoringSystem
             };
 
             gsmUserPin = "";
+            requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -123,15 +126,18 @@ namespace BatteryMonitoringSystem
                     if (currentMessageCount + countExpectedMessages * 2 > maxMessageCountInStorage)
                         customComPort.ClearMessageStorage();
 
-                    customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
-                    sourceRequestMessages = new Queue<string>();
-                    sourceRequestMessages.Enqueue(phoneNumber);
+                    requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
+                        new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
 
-                    int index = Array.IndexOf(timers, null);
+                    customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
+                    //sourceRequestMessages = new Queue<string>();
+                    //sourceRequestMessages.Enqueue(phoneNumber);
+
+                    /*int index = Array.IndexOf(timers, null);
                     if (index != -1)
                     {
                         timers[index] = new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000);
-                    }
+                    }*/
 
                     programStatus.Text = "Сообщение отправлено успешно";//Message has sent successfully
                 }
