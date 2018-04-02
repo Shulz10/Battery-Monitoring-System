@@ -23,7 +23,6 @@ namespace BatteryMonitoringSystem
         private InformationSourcePanel informationSourcePanel;
         private ManualModePanel manualModePanel;
         private List<string> choseInformationSource;
-        //private Queue<string> sourceRequestMessages;
         private List<ShortMessage> unreadShortMessages;
         private int currentMessageCount;
         private int maxMessageCountInStorage;
@@ -31,7 +30,7 @@ namespace BatteryMonitoringSystem
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         static Barrier barrier = new Barrier(3);
-        private Timer[] timers = new Timer[10];
+        //private Timer[] timers = new Timer[10];
 
         private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
@@ -63,6 +62,11 @@ namespace BatteryMonitoringSystem
                 customComPort.OpenComPort();            
                 programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
                 customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
+                if (currentMessageCount > 0)
+                {
+                    customComPort.ClearMessageStorage();
+                    currentMessageCount = 0;
+                }
             }
             catch(Exception ex)
             {
@@ -130,8 +134,6 @@ namespace BatteryMonitoringSystem
                         new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
 
                     customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
-                    //sourceRequestMessages = new Queue<string>();
-                    //sourceRequestMessages.Enqueue(phoneNumber);
 
                     /*int index = Array.IndexOf(timers, null);
                     if (index != -1)
