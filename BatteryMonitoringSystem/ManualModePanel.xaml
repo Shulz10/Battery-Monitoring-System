@@ -31,11 +31,11 @@
         <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
             <TextBox x:Name="messageCountTxt" Style="{StaticResource textboxStyle}" TextChanged="CommandParameterChanged" MaxLength="3" PreviewTextInput="CheckEnteredCharacter"/>
         </StackPanel>
-        <ComboBox x:Name="choosePhoneNumber" MinWidth="120" MinHeight="23" Margin="10,20,0,0" SelectedIndex="0" HorizontalAlignment="Left" >
+        <ComboBox x:Name="choosePhoneNumber" MinWidth="120" MinHeight="23" Margin="10,20,0,0" SelectedIndex="0" HorizontalAlignment="Left">
             <ComboBoxItem Visibility="Collapsed" Content="Выберите получателя"/>
         </ComboBox>
         <StackPanel Orientation="Horizontal">
-            <Button x:Name="getLastMessageBtn" Content="Последнее сообщение" Margin="10,20,0,0" HorizontalAlignment="Center" FontWeight="Bold" FontSize="16" MinHeight="30" Style="{StaticResource baseControlStyle}"/>
+            <Button x:Name="getLastMessageBtn" Content="Последнее сообщение" Margin="10,20,0,0" HorizontalAlignment="Center" FontWeight="Bold" FontSize="16" MinHeight="30" IsEnabled="False" Style="{StaticResource baseControlStyle}"/>
             <Button x:Name="getRangeMessageBtn" Content="Диапозон сообщений" Margin="10,20,0,0" HorizontalAlignment="Center" FontWeight="Bold" FontSize="16" MinHeight="30" IsEnabled="False" Style="{StaticResource baseControlStyle}"/>
         </StackPanel>
     </StackPanel>

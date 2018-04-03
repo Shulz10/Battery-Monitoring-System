@@ -23,7 +23,7 @@ namespace BatteryMonitoringSystem
     {
         public ManualModePanel()
         {
-            InitializeComponent();
+            InitializeComponent();            
         }
 
         public bool IsPressed
@@ -68,6 +68,7 @@ namespace BatteryMonitoringSystem
             };
             animate.Completed += (o, s) => { RemoveOldPanel(); };
             this.BeginAnimation(MarginProperty, animate);
+            choosePhoneNumber.SelectionChanged += ChoosePhoneNumber_SelectionChanged;
         }
 
         private void RemoveOldPanel()
@@ -152,13 +153,30 @@ namespace BatteryMonitoringSystem
         {
             if (fromTxt.Text == "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
                 getRangeMessageBtn.IsEnabled = false;
-            else getRangeMessageBtn.IsEnabled = true;
+            else if((choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled)
+                getRangeMessageBtn.IsEnabled = true;
         }
 
         private void CheckEnteredCharacter(object sender, TextCompositionEventArgs e)
         {
             if (!Char.IsDigit(e.Text, 0))
                 e.Handled = true;
+        }
+
+        public void ChangeButtonsAvailability()
+        {
+            getLastMessageBtn.IsEnabled ^= true;
+            if (fromTxt.Text != "" ^ beforeTxt.Text != "" ^ messageCountTxt.Text != "")
+                getRangeMessageBtn.IsEnabled ^= true;
+        }
+
+        private void ChoosePhoneNumber_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBoxItem comboBoxItem = choosePhoneNumber.SelectedItem as ComboBoxItem;
+            if (comboBoxItem.IsEnabled && comboBoxItem.Content.ToString() != "Выберите получателя")
+                getLastMessageBtn.IsEnabled = true;
+            else
+                getLastMessageBtn.IsEnabled = false;
         }
     }
 }

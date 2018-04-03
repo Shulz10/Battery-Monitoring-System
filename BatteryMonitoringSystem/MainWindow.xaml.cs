@@ -42,19 +42,20 @@ namespace BatteryMonitoringSystem
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             manualModePanel = new ManualModePanel();
             manualModePanel.getRangeMessageBtn.Click += (s, e) => {
-                    ComPortInitialization();
+                ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.RangeMessage));
             };
             manualModePanel.getLastMessageBtn.Click += (s, e) => {
-                    ComPortInitialization();
+                ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.LastMessage));
             };
+            manualModePanel.choosePhoneNumber.DropDownOpened += ChoosePhoneNumber_DropDownOpened;
 
             gsmUserPin = "";
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
-        }
+        }        
 
         private void ComPortInitialization()
         {
@@ -120,6 +121,18 @@ namespace BatteryMonitoringSystem
             }
         }
 
+        private void ChoosePhoneNumber_DropDownOpened(object sender, EventArgs e)
+        {
+            /*if(manualModePanel.choosePhoneNumber.IsDropDownOpen)
+            {
+                foreach(ComboBoxItem phoneNumber in manualModePanel.choosePhoneNumber.Items)
+                {
+                    if (requests.ContainsKey(phoneNumber.Content.ToString()))
+                        phoneNumber.IsEnabled = false;                        
+                }
+            }*/
+        }
+
         private void GetListMessage(string phoneNumber, string command)
         {
             try
@@ -133,21 +146,20 @@ namespace BatteryMonitoringSystem
                         countExpectedMessages = 1;
                     else countExpectedMessages = Convert.ToInt32(manualModePanel.messageCountTxt.Text);
 
-                    if (currentMessageCount + countExpectedMessages * 2 > maxMessageCountInStorage)
-                        customComPort.ClearMessageStorage();
-                   
-                    customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
-
-                    requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
-                        new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
-
-                    /*int index = Array.IndexOf(timers, null);
-                    if (index != -1)
+                    if (requests.Values.Sum(n => n.Item1.MessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage)
                     {
-                        timers[index] = new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000);
-                    }*/
+                        //customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
-                    programStatus.Text = "Сообщение отправлено успешно";//Message has sent successfully
+                        requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
+                            new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
+
+                        (manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled = false;
+
+                        programStatus.Text = "Сообщение отправлено успешно";//Message has sent successfully
+
+                        manualModePanel.ChangeButtonsAvailability();
+                    }
+                    else programStatus.Text = "Отправка запроса невозможна. Отмените не нужный запрос или дождитесь окончания.";
                 }
             }
             catch(Exception ex)
