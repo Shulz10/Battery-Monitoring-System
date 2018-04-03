@@ -67,7 +67,7 @@ namespace BatteryMonitoringSystem
                 Duration = TimeSpan.FromSeconds(1)
             };
             animate.Completed += (o, s) => { RemoveOldPanel(); };
-            this.BeginAnimation(MarginProperty, animate);
+            BeginAnimation(MarginProperty, animate);
             choosePhoneNumber.SelectionChanged += ChoosePhoneNumber_SelectionChanged;
         }
 

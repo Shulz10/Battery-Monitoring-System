@@ -51,7 +51,6 @@ namespace BatteryMonitoringSystem
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.LastMessage));
             };
-            manualModePanel.choosePhoneNumber.DropDownOpened += ChoosePhoneNumber_DropDownOpened;
 
             gsmUserPin = "";
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
@@ -121,18 +120,6 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void ChoosePhoneNumber_DropDownOpened(object sender, EventArgs e)
-        {
-            /*if(manualModePanel.choosePhoneNumber.IsDropDownOpen)
-            {
-                foreach(ComboBoxItem phoneNumber in manualModePanel.choosePhoneNumber.Items)
-                {
-                    if (requests.ContainsKey(phoneNumber.Content.ToString()))
-                        phoneNumber.IsEnabled = false;                        
-                }
-            }*/
-        }
-
         private void GetListMessage(string phoneNumber, string command)
         {
             try
@@ -148,7 +135,7 @@ namespace BatteryMonitoringSystem
 
                     if (requests.Values.Sum(n => n.Item1.MessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage)
                     {
-                        //customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
+                        customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
                         requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
                             new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
@@ -168,18 +155,22 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void ReceivingResponseToRequest(object phoneNumber)
+        private void ReceivingResponseToRequest(object fromObject)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
             {
                 try
                 {
+                    string phoneNumber = fromObject as string;
                     customComPort.GetCountSMSMessagesInStorage(out int messageCount);
                     if (messageCount - currentMessageCount > 0)
                     {
                         currentMessageCount = messageCount;
                         unreadShortMessages = customComPort.ReadSMS(ref gsmUserPin);
-                        unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber as string);
+                        unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
+
+                        requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
+
                         if (unreadShortMessages != null)
                         {
                             foreach (var msg in unreadShortMessages)
@@ -190,6 +181,22 @@ namespace BatteryMonitoringSystem
                                     Message = msg.Message,
                                     PhoneNumber = msg.Sender
                                 });
+                        }
+
+                        if (requests[phoneNumber].Item1.ReceivedMessagesNumber == requests[phoneNumber].Item1.MessagesNumber)
+                        {
+                            requests[phoneNumber].Item2.Change(Timeout.Infinite, Timeout.Infinite);
+                            requests[phoneNumber].Item2.Dispose();
+                            requests.Remove(phoneNumber);
+                            foreach (ComboBoxItem comboBoxItem in manualModePanel.choosePhoneNumber.Items)
+                            {
+                                if (comboBoxItem.Content.ToString() == phoneNumber)
+                                {
+                                    comboBoxItem.IsEnabled = true;
+                                    if (comboBoxItem == manualModePanel.choosePhoneNumber.SelectedItem)
+                                        manualModePanel.ChangeButtonsAvailability();
+                                }
+                            }
                         }
                     }
                 }

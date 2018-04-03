@@ -176,7 +176,7 @@ namespace BatteryMonitoringSystem.Models
                 ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Failed to accept phone number.");
-                ExecuteCommand(message + char.ConvertFromUtf32(26), 6000, "Failed to send message.");
+                ExecuteCommand(message + char.ConvertFromUtf32(26), 10000, "Failed to send message.");
             }
             catch(Exception ex)
             {

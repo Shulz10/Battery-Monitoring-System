@@ -6,16 +6,20 @@ namespace BatteryMonitoringSystem.Models
     {
         private int? startMessageIndex;
         private int? lastMessageIndex;
+        private int receivedMessagesNumber;
         private CommandCode commandCode;
 
-        public int StartMessageIndex { get; }
-        public int LastMessageIndex { get; }
-        public int MessagesNumber {
+        public int? StartMessageIndex { get; }
+        public int? LastMessageIndex { get; }
+        public int ReceivedMessagesNumber { get; set; }
+        public int? MessagesNumber {
             get
             {
                 if (commandCode == CommandCode.LastMessage)
-                    return 1;
-                else return LastMessageIndex - StartMessageIndex + 1;
+                    return 2;
+                else if(LastMessageIndex != null && StartMessageIndex != null)
+                    return (LastMessageIndex - StartMessageIndex + 1) * 2;
+                return null;
             }
         }
 
@@ -26,6 +30,7 @@ namespace BatteryMonitoringSystem.Models
             this.startMessageIndex = startMessageIndex;
             this.lastMessageIndex = lastMessageIndex;
             this.commandCode = commandCode;
+            receivedMessagesNumber = 0;
         }
 
         public SmsRequest(string startMessageIndex, string lastMessageIndex, CommandCode commandCode)
@@ -33,6 +38,7 @@ namespace BatteryMonitoringSystem.Models
             this.startMessageIndex = startMessageIndex == "" ? (int?)null : int.Parse(startMessageIndex);
             this.lastMessageIndex = lastMessageIndex == "" ? (int?)null : int.Parse(lastMessageIndex);
             this.commandCode = commandCode;
+            receivedMessagesNumber = 0;
         }
     }
 }
