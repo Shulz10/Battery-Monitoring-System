@@ -30,7 +30,6 @@ namespace BatteryMonitoringSystem
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         static Barrier barrier = new Barrier(3);
-        //private Timer[] timers = new Timer[10];
 
         private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
@@ -133,7 +132,7 @@ namespace BatteryMonitoringSystem
                         countExpectedMessages = 1;
                     else countExpectedMessages = Convert.ToInt32(manualModePanel.messageCountTxt.Text);
 
-                    if (requests.Values.Sum(n => n.Item1.MessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage)
+                    if (requests.Values.Sum(n => n.Item1.MessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
                     {
                         customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
