@@ -173,10 +173,13 @@ namespace BatteryMonitoringSystem
         private void ChoosePhoneNumber_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBoxItem comboBoxItem = choosePhoneNumber.SelectedItem as ComboBoxItem;
-            if (comboBoxItem.IsEnabled && comboBoxItem.Content.ToString() != "Выберите получателя")
-                getLastMessageBtn.IsEnabled = true;
-            else
-                getLastMessageBtn.IsEnabled = false;
+            if (comboBoxItem != null)
+            {
+                if (comboBoxItem.IsEnabled && comboBoxItem.Content.ToString() != "Выберите получателя")
+                    getLastMessageBtn.IsEnabled = true;
+                else
+                    getLastMessageBtn.IsEnabled = false;
+            }
         }
     }
 }

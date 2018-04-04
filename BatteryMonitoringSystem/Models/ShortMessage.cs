@@ -7,6 +7,7 @@ namespace BatteryMonitoringSystem.Models
     public class ShortMessage
     {
         #region Private Variable
+        private int messageNumberInModemStorage;
         private double messageNumber;
         private string sender;
         private DateTime receivedDateTime;
@@ -14,6 +15,12 @@ namespace BatteryMonitoringSystem.Models
         #endregion
 
         #region Public Properties
+        public int MessageNumberInModemStorage
+        {
+            get { return messageNumberInModemStorage; }
+            set { messageNumberInModemStorage = value; }
+        }
+
         public double MessageNumber
         {
             get { return messageNumber; }
@@ -40,13 +47,18 @@ namespace BatteryMonitoringSystem.Models
         #endregion
 
         #region Constructor
-        public ShortMessage()
-        {
-
-        }
+        public ShortMessage(){ }
 
         public ShortMessage(string phoneNumber, string messageBody)
         {
+            sender = phoneNumber;
+            receivedDateTime = new DateTime(2018, 1, 1);
+            ParseShortMessageBody(messageBody);
+        }
+
+        public ShortMessage(string messageNumberInModemStorage, string phoneNumber, string messageBody)
+        {
+            this.messageNumberInModemStorage = int.Parse(messageNumberInModemStorage);
             sender = phoneNumber;
             receivedDateTime = new DateTime(2018, 1, 1);
             ParseShortMessageBody(messageBody);

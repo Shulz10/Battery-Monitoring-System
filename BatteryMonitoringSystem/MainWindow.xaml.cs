@@ -132,7 +132,7 @@ namespace BatteryMonitoringSystem
                         countExpectedMessages = 1;
                     else countExpectedMessages = Convert.ToInt32(manualModePanel.messageCountTxt.Text);
 
-                    if (requests.Values.Sum(n => n.Item1.MessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
+                    if (requests.Values.Sum(n => n.Item1.MessagesNumber - n.Item1.ReceivedMessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
                     {
                         customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
@@ -172,31 +172,12 @@ namespace BatteryMonitoringSystem
 
                         if (unreadShortMessages != null)
                         {
-                            foreach (var msg in unreadShortMessages)
-                                messagesHistoryView.Items.Add(new
-                                {
-                                    MessageNumber = msg.MessageNumber,
-                                    MessageDateTime = msg.ReceivedDateTime,
-                                    Message = msg.Message,
-                                    PhoneNumber = msg.Sender
-                                });
+                            AddNewMessageToDataTable(unreadShortMessages);
+                            customComPort.RemoveMessagesByNumber(unreadShortMessages);
                         }
 
                         if (requests[phoneNumber].Item1.ReceivedMessagesNumber == requests[phoneNumber].Item1.MessagesNumber)
-                        {
-                            requests[phoneNumber].Item2.Change(Timeout.Infinite, Timeout.Infinite);
-                            requests[phoneNumber].Item2.Dispose();
-                            requests.Remove(phoneNumber);
-                            foreach (ComboBoxItem comboBoxItem in manualModePanel.choosePhoneNumber.Items)
-                            {
-                                if (comboBoxItem.Content.ToString() == phoneNumber)
-                                {
-                                    comboBoxItem.IsEnabled = true;
-                                    if (comboBoxItem == manualModePanel.choosePhoneNumber.SelectedItem)
-                                        manualModePanel.ChangeButtonsAvailability();
-                                }
-                            }
-                        }
+                            StopReceivedData(phoneNumber);
                     }
                 }
                 catch (Exception ex)
@@ -285,6 +266,34 @@ namespace BatteryMonitoringSystem
             });
             operationProgress.Visibility = Visibility.Hidden;
             programStatus.Text = "Файл успешно выгружен в таблицу.";
+        }
+
+        private void AddNewMessageToDataTable(List<ShortMessage> newMessages)
+        {
+            foreach (var msg in newMessages)
+                messagesHistoryView.Items.Add(new
+                {
+                    MessageNumber = msg.MessageNumber,
+                    MessageDateTime = msg.ReceivedDateTime,
+                    Message = msg.Message,
+                    PhoneNumber = msg.Sender
+                });
+        }
+
+        private void StopReceivedData(string byPhoneNumber)
+        {
+            requests[byPhoneNumber].Item2.Change(Timeout.Infinite, Timeout.Infinite);
+            requests[byPhoneNumber].Item2.Dispose();
+            requests.Remove(byPhoneNumber);
+            foreach (ComboBoxItem comboBoxItem in manualModePanel.choosePhoneNumber.Items)
+            {
+                if (comboBoxItem.Content.ToString() == byPhoneNumber)
+                {
+                    comboBoxItem.IsEnabled = true;
+                    if (comboBoxItem == manualModePanel.choosePhoneNumber.SelectedItem)
+                        manualModePanel.ChangeButtonsAvailability();
+                }
+            }
         }
 
         private void ChangeButtonBackgroundColor(string btnName)

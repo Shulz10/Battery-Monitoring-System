@@ -287,6 +287,22 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        //Remove SMS by number
+        public void RemoveMessagesByNumber(List<ShortMessage> listReadMessages)
+        {
+            try
+            {
+                ExecuteCommand("AT", 300, "No phone connected.");
+                ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
+                for (int i = 0; i < listReadMessages.Count; i++)
+                    ExecuteCommand($"AT+CMGD={listReadMessages[i].MessageNumberInModemStorage},0", 300, "Failed to delete message from GSM-modem storage.");
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         //Parse Messages
         public List<ShortMessage> ParseMessages(string input)
         {
@@ -297,7 +313,7 @@ namespace BatteryMonitoringSystem.Models
                 Match match = regex.Match(input);
                 while (match.Success)
                 {
-                    messages.Add(new ShortMessage(phoneNumber: match.Groups[3].Value, messageBody: match.Groups[6].Value));
+                    messages.Add(new ShortMessage(messageNumberInModemStorage: match.Groups[1].Value ,phoneNumber: match.Groups[3].Value, messageBody: match.Groups[6].Value));
                     match = match.NextMatch();
                 }
             }
