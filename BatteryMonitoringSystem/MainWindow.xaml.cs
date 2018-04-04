@@ -108,11 +108,13 @@ namespace BatteryMonitoringSystem
                                          Sender = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
                                      }).ToList();
 
+
+
                         if (query.Count > 0)
-                            foreach(ShortMessage msg in query)
-                                messagesHistoryView.Items.Add(msg);
+                            AddNewMessageToDataTable(query);
+
+                        programStatus.Text = "Источники информации успешно выбраны!";
                     }
-                    programStatus.Text = "Источники информации успешно выбраны!";
                 }
                 else
                     MessageBox.Show("None of the information sources is selected!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -172,6 +174,7 @@ namespace BatteryMonitoringSystem
 
                         if (unreadShortMessages != null)
                         {
+                            WriteSmsInDb(unreadShortMessages);
                             AddNewMessageToDataTable(unreadShortMessages);
                             customComPort.RemoveMessagesByNumber(unreadShortMessages);
                         }
@@ -275,10 +278,36 @@ namespace BatteryMonitoringSystem
                 {
                     MessageNumber = msg.MessageNumber,
                     PhoneNumber = msg.Sender,
-                    ReceivedDate = msg.ReceivedDateTime,
-                    ReceivedTime = msg.ReceivedDateTime.TimeOfDay,
+                    ReceivedDate = msg.ReceivedDateTime.Date,
+                    ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
                     Message = msg.Message
                 });
+        }
+
+        private void WriteSmsInDb(List<ShortMessage> listShortMessage)
+        {
+            using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
+            {
+                foreach (var msg in listShortMessage)
+                {
+                    var query = context.Informations.Where(info => info.MessageNumber == msg.MessageNumber &&
+                        info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber == msg.Sender).ToList();
+
+                    if(query.Count == 0)
+                    {
+                        var infoSource = context.InformationSources.Where(source => source.InternationalCode + source.PhoneNumber == msg.Sender).First();
+
+                        context.Informations.Add(new Information
+                        {
+                            MessageNumber = msg.MessageNumber,
+                            MessageDateTime = msg.ReceivedDateTime,
+                            Message = msg.Message,
+                            InformationSourceID = infoSource.InformationSourceID
+                        });
+                        context.SaveChanges();
+                    }
+                }
+            }
         }
 
         private void StopReceivedData(string byPhoneNumber)

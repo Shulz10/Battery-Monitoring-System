@@ -9,13 +9,26 @@ namespace BatteryMonitoringSystem.Models
     [Table("Informations")]
     public class Information : INotifyPropertyChanged
     {
-        private int messageNumber;
+        private int Id;
+        private double messageNumber;
         private int informationSourceID;
         private DateTime messageDateTime;
         private string message;
 
         [Key]
-        public int MessageNumber
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ID
+        {
+            get { return Id; }
+            set
+            {
+                Id = value;
+                OnPropertyChanged("InformationId");
+            }
+        }
+
+        [Required]
+        public double MessageNumber
         {
             get { return messageNumber; }
             set
