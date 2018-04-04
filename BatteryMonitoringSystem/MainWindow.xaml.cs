@@ -274,9 +274,10 @@ namespace BatteryMonitoringSystem
                 messagesHistoryView.Items.Add(new
                 {
                     MessageNumber = msg.MessageNumber,
-                    MessageDateTime = msg.ReceivedDateTime,
-                    Message = msg.Message,
-                    PhoneNumber = msg.Sender
+                    PhoneNumber = msg.Sender,
+                    ReceivedDate = msg.ReceivedDateTime,
+                    ReceivedTime = msg.ReceivedDateTime.TimeOfDay,
+                    Message = msg.Message
                 });
         }
 
