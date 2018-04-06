@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BatteryMonitoringSystem.Models;
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace BatteryMonitoringSystem
 {
@@ -21,6 +12,8 @@ namespace BatteryMonitoringSystem
     /// </summary>
     public partial class CurrentRequestsPanel : UserControl
     {
+        private DispatcherTimer[] timers;
+
         public CurrentRequestsPanel()
         {
             InitializeComponent();
@@ -68,6 +61,8 @@ namespace BatteryMonitoringSystem
             };
             animate.Completed += (o, s) => { RemoveOldPanel(); };
             BeginAnimation(MarginProperty, animate);
+
+            timers = new DispatcherTimer[5];
         }
 
         private void RemoveOldPanel()
@@ -85,6 +80,45 @@ namespace BatteryMonitoringSystem
                     }
                 }
             }
+        }
+
+        private void AddNewRequest(string phoneNumber, SmsRequest smsRequest)
+        {
+            int index = Array.IndexOf(timers, null);
+            if (index != -1)
+            {
+                timers[index] = new DispatcherTimer();
+                timers[index].Interval = TimeSpan.FromSeconds(1);
+                timers[index].Tick += DispatcherTimer_Tick;
+            }
+            RowDefinition newGridRow = new RowDefinition();
+            listRequests.RowDefinitions.Add(newGridRow);
+
+            Label phoneNumberLabel = new Label() { Content = phoneNumber };
+            Grid.SetRow(phoneNumberLabel, listRequests.RowDefinitions.Count - 1);
+            Grid.SetColumn(phoneNumberLabel, 0);
+
+            Label messagesCounterLabel = new Label() { Content = $"{smsRequest.ReceivedMessagesNumber}/{smsRequest.MessagesNumber}" };
+            Grid.SetRow(messagesCounterLabel, listRequests.RowDefinitions.Count - 1);
+            Grid.SetColumn(messagesCounterLabel, 1);
+
+            Label requestTimeLabel = new Label() { Content = $"{smsRequest.DiffRequestTime.ToString(@"hh\\:mm\\:ss")}" };
+            Grid.SetRow(requestTimeLabel, listRequests.RowDefinitions.Count - 1);
+            Grid.SetColumn(requestTimeLabel, 2);
+
+            Button closeRequestBtn = new Button() { Content = "Close" };
+            Grid.SetRow(closeRequestBtn, listRequests.RowDefinitions.Count - 1);
+            Grid.SetColumn(closeRequestBtn, 3);
+
+            listRequests.Children.Add(phoneNumberLabel);
+            listRequests.Children.Add(messagesCounterLabel);
+            listRequests.Children.Add(requestTimeLabel);
+            listRequests.Children.Add(closeRequestBtn);
+        }
+
+        private void DispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            
         }
     }
 }

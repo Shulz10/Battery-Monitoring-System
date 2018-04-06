@@ -140,7 +140,7 @@ namespace BatteryMonitoringSystem
                     {
                         customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
-                        requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
+                        requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, DateTime.Now, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
                             new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
 
                         (manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled = false;
