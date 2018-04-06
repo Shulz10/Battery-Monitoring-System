@@ -9,9 +9,9 @@ namespace BatteryMonitoringSystem.Models
         private int receivedMessagesNumber;
         private CommandCode commandCode;
 
-        public int? StartMessageIndex { get; }
-        public int? LastMessageIndex { get; }
-        public int ReceivedMessagesNumber { get; set; }
+        public int? StartMessageIndex { get { return startMessageIndex; } }
+        public int? LastMessageIndex { get { return lastMessageIndex; } }
+        public int ReceivedMessagesNumber { get { return receivedMessagesNumber; } set { receivedMessagesNumber = value; } }
         public int? MessagesNumber {
             get
             {
@@ -19,11 +19,11 @@ namespace BatteryMonitoringSystem.Models
                     return 2;
                 else if(LastMessageIndex != null && StartMessageIndex != null)
                     return (LastMessageIndex - StartMessageIndex + 1) * 2;
-                return null;
+                else return null;
             }
         }
 
-        public CommandCode CommandCode { get; }
+        public CommandCode CommandCode { get { return commandCode; } }
 
         public SmsRequest(int startMessageIndex, int lastMessageIndex, CommandCode commandCode)
         {

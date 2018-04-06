@@ -66,10 +66,10 @@ namespace BatteryMonitoringSystem
                     programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
                 }
 
-                customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
+                customComPort.GetCountSMSMessagesInStorage(ref gsmUserPin, out currentMessageCount, out maxMessageCountInStorage);
                 if (currentMessageCount > 0)
                 {
-                    customComPort.ClearMessageStorage();
+                    customComPort.ClearMessageStorage(ref gsmUserPin);
                     currentMessageCount = 0;
                 }
             }
@@ -163,7 +163,7 @@ namespace BatteryMonitoringSystem
                 try
                 {
                     string phoneNumber = fromObject as string;
-                    customComPort.GetCountSMSMessagesInStorage(out int messageCount);
+                    customComPort.GetCountSMSMessagesInStorage(ref gsmUserPin, out int messageCount);
                     if (messageCount - currentMessageCount > 0)
                     {
                         currentMessageCount = messageCount;

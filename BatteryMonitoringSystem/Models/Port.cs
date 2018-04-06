@@ -118,7 +118,7 @@ namespace BatteryMonitoringSystem.Models
                 customSerialPort.Write(command + "\r\n");
 
                 string input = ReadResponse(responseTimeout);
-                if ((input.Length == 0) || (!input.EndsWith("\r\n> ") && !input.EndsWith("\r\nOK\r\n")))
+                if ((input.Length == 0) || (!input.EndsWith("\r\n> ") && !input.Contains("\r\nOK\r\n")))
                     throw new ApplicationException(errorMessage);
                 return input;
             }
@@ -149,7 +149,7 @@ namespace BatteryMonitoringSystem.Models
                             throw new ApplicationException("No data received from phone.");
                     }
                 }
-                while (!buffer.EndsWith("\r\nOK\r\n") && !buffer.EndsWith("\r\n> ") && !buffer.EndsWith("\r\nERROR\r\n"));
+                while (!buffer.Contains("\r\nOK\r\n") && !buffer.EndsWith("\r\n> ") && !buffer.EndsWith("\r\nERROR\r\n"));
             }
             catch (Exception ex)
             {
@@ -203,13 +203,23 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Count SMS
-        public void GetCountSMSMessagesInStorage(out int currentMessageCountInStorage, out int maxMessageCountInStorage)
+        public void GetCountSMSMessagesInStorage(ref string PIN, out int currentMessageCountInStorage, out int maxMessageCountInStorage)
         {
             try
             {
                 ExecuteCommand("AT", 500, "No phone connected.");
+                ExecuteCommand("AT+CPIN?", 300, "");
+                if (PIN == "")
+                {
+                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                    if (inputPINWindow.ShowDialog() == true)
+                        PIN = inputPINWindow.PIN.Text;
+                    else
+                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
+                }
+                ExecuteCommand($"AT+CPIN={PIN}\r", 500, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
-                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");//"AT+CPMS=\"SM\",\"SM\",\"SM\""
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");
                 string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Failed to count SMS message.").Split(',');
                 currentMessageCountInStorage = Convert.ToInt32(parsedReceivedData[1]);
                 maxMessageCountInStorage = Convert.ToInt32(parsedReceivedData[2]);
@@ -220,13 +230,23 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
-        public void GetCountSMSMessagesInStorage(out int currentMessageCountInStorage)
+        public void GetCountSMSMessagesInStorage(ref string PIN, out int currentMessageCountInStorage)
         {
             try
             {
                 ExecuteCommand("AT", 500, "No phone connected.");
+                ExecuteCommand("AT+CPIN?", 300, "");
+                if (PIN == "")
+                {
+                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                    if (inputPINWindow.ShowDialog() == true)
+                        PIN = inputPINWindow.PIN.Text;
+                    else
+                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
+                }
+                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
-                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");//"AT+CPMS=\"SM\",\"SM\",\"SM\""
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");
                 string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Failed to count SMS message.").Split(',');
                 currentMessageCountInStorage = Convert.ToInt32(parsedReceivedData[1]);
             }
@@ -274,11 +294,11 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Clear SMS storage
-        public void ClearMessageStorage()
+        public void ClearMessageStorage(ref string PIN)
         {
             try
             {
-                GetCountSMSMessagesInStorage(out int currentCountMessageInStorage);
+                GetCountSMSMessagesInStorage(ref PIN, out int currentCountMessageInStorage);
                 ExecuteCommand($"AT+CMGD={currentCountMessageInStorage},1", 500, "Failed to clear SMS storage");
             }
             catch(Exception ex)
