@@ -121,11 +121,17 @@
   <data name="Action_arrow_blue_down_icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\action-arrow-blue-down-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="cogwheels" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cogwheels.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="Designbolts_Free_Multimedia_Memory_Card" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\designbolts-free-multimedia-memory-card.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="excel" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\excel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="handshake" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\handshake.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="hourglass" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\hourglass.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="phone_receiver" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\phone-receiver.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

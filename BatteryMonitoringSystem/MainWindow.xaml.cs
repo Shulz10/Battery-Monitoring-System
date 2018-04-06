@@ -22,6 +22,7 @@ namespace BatteryMonitoringSystem
         private Port customComPort;
         private InformationSourcePanel informationSourcePanel;
         private ManualModePanel manualModePanel;
+        private CurrentRequestsPanel currentRequestsPanel;
         private List<string> choseInformationSource;
         private List<ShortMessage> unreadShortMessages;
         private int currentMessageCount;
@@ -50,6 +51,7 @@ namespace BatteryMonitoringSystem
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand(CommandCode.LastMessage));
             };
+            currentRequestsPanel = new CurrentRequestsPanel();
 
             gsmUserPin = "";
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
@@ -229,6 +231,24 @@ namespace BatteryMonitoringSystem
             {
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 manualModePanel.IsPressed = false;
+            }
+        }
+
+        private void OpenListCurrentRequests(object sender, RoutedEventArgs e)
+        {
+            if(!currentRequestsPanel.IsPressed)
+            {
+                ChangeButtonBackgroundColor((sender as Button).Name);
+                currentRequestsPanel.IsPressed = true;
+                
+                Grid.SetRow(currentRequestsPanel, 1);
+                Grid.SetColumn(currentRequestsPanel, 1);
+                grid.Children.Add(currentRequestsPanel);
+            }
+            else
+            {
+                (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
+                currentRequestsPanel.IsPressed = false;
             }
         }
 

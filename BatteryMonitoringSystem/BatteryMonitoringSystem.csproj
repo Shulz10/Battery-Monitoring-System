@@ -95,10 +95,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CurrentRequestsPanel.xaml.cs">
+      <DependentUpon>CurrentRequestsPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Models\CommandCode.cs" />
     <Compile Include="InformationSourcePanel.xaml.cs">
       <DependentUpon>InformationSourcePanel.xaml</DependentUpon>
     </Compile>
+    <Page Include="CurrentRequestsPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="InputPINWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -161,6 +168,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -183,9 +191,6 @@
     <Resource Include="Resources\phone-receiver.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\cogwheels.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\handshake.png" />
   </ItemGroup>
   <ItemGroup>
@@ -204,10 +209,10 @@
     <Resource Include="Resources\Designbolts-Free-Multimedia-Memory-Card.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\vspc-icon-256.png" />
+    <Resource Include="Resources\excel.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\excel.png" />
+    <Resource Include="Resources\hourglass.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.106.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.106.0\build\net46\System.Data.SQLite.Core.targets')" />

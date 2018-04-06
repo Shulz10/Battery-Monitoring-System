@@ -38,6 +38,10 @@
                 <Image Source="Resources/handshake.png"/>
             </Button>
             <Separator Margin="0"/>
+            <Button x:Name="requestInfoBtn" Background="Transparent" BorderThickness="0" ToolTip="Текущие запросы" Click="OpenListCurrentRequests">
+                <Image Source="Resources/hourglass.png"/>
+            </Button>
+            <Separator Margin="0"/>
             <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщения из файла" Click="OpenFileOfMessages">
                 <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
             </Button>
