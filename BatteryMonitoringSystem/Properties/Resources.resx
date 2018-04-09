@@ -121,6 +121,9 @@
   <data name="Action_arrow_blue_down_icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\action-arrow-blue-down-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="closeBtn" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\closebtn.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Designbolts_Free_Multimedia_Memory_Card" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\designbolts-free-multimedia-memory-card.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

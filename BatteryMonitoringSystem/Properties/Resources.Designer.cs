@@ -73,6 +73,16 @@ namespace BatteryMonitoringSystem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        public static System.Drawing.Bitmap closeBtn {
+            get {
+                object obj = ResourceManager.GetObject("closeBtn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         public static System.Drawing.Bitmap Designbolts_Free_Multimedia_Memory_Card {
             get {
                 object obj = ResourceManager.GetObject("Designbolts_Free_Multimedia_Memory_Card", resourceCulture);

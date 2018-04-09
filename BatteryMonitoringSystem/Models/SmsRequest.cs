@@ -1,14 +1,19 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace BatteryMonitoringSystem.Models
 {
-    class SmsRequest
+    public class SmsRequest : INotifyPropertyChanged
     {
         private int? startMessageIndex;
         private int? lastMessageIndex;
         private int receivedMessagesNumber;
         private CommandCode commandCode;
         private DateTime requestDateTime;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged([CallerMemberName]string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public int? StartMessageIndex { get { return startMessageIndex; } }
         public int? LastMessageIndex { get { return lastMessageIndex; } }
@@ -31,9 +36,13 @@ namespace BatteryMonitoringSystem.Models
             get { return requestDateTime; }
             set { requestDateTime = value; }
         }
-        public TimeSpan DiffRequestTime
+        public string DiffRequestTime
         {
-            get { return DateTime.Now.Subtract(requestDateTime); }
+            get { return DateTime.Now.Subtract(requestDateTime).ToString(@"hh\:mm\:ss"); }
+        }
+        public string StatisticsByReceivedMessage
+        {
+            get { return $"{ReceivedMessagesNumber}/{MessagesNumber}"; }
         }
 
         public SmsRequest(int startMessageIndex, int lastMessageIndex, DateTime requestDateTime, CommandCode commandCode)

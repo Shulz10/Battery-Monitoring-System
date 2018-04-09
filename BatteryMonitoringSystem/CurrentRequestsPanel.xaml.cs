@@ -2,8 +2,10 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Threading;
+using System.Windows.Media.Imaging;
 
 namespace BatteryMonitoringSystem
 {
@@ -12,8 +14,6 @@ namespace BatteryMonitoringSystem
     /// </summary>
     public partial class CurrentRequestsPanel : UserControl
     {
-        private DispatcherTimer[] timers;
-
         public CurrentRequestsPanel()
         {
             InitializeComponent();
@@ -61,8 +61,6 @@ namespace BatteryMonitoringSystem
             };
             animate.Completed += (o, s) => { RemoveOldPanel(); };
             BeginAnimation(MarginProperty, animate);
-
-            timers = new DispatcherTimer[5];
         }
 
         private void RemoveOldPanel()
@@ -82,43 +80,51 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void AddNewRequest(string phoneNumber, SmsRequest smsRequest)
+        public void AddNewRequest(string phoneNumber, SmsRequest smsRequest)
         {
-            int index = Array.IndexOf(timers, null);
-            if (index != -1)
+            Label phoneNumberLabel = new Label() { Content = phoneNumber, Width = 120 };
+
+            Label messagesCounterLabel = new Label() { Width = 40 };
+            Binding binding = new Binding("StatisticsByReceivedMessage")
             {
-                timers[index] = new DispatcherTimer();
-                timers[index].Interval = TimeSpan.FromSeconds(1);
-                timers[index].Tick += DispatcherTimer_Tick;
-            }
-            RowDefinition newGridRow = new RowDefinition();
-            listRequests.RowDefinitions.Add(newGridRow);
+                Source = smsRequest,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(messagesCounterLabel, ContentProperty, binding);
 
-            Label phoneNumberLabel = new Label() { Content = phoneNumber };
-            Grid.SetRow(phoneNumberLabel, listRequests.RowDefinitions.Count - 1);
-            Grid.SetColumn(phoneNumberLabel, 0);
+            Label requestTimeLabel = new Label() { Width = 120 };
+            binding = new Binding("DiffRequestTime")
+            {
+                Source = smsRequest,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(requestTimeLabel, ContentProperty, binding);
 
-            Label messagesCounterLabel = new Label() { Content = $"{smsRequest.ReceivedMessagesNumber}/{smsRequest.MessagesNumber}" };
-            Grid.SetRow(messagesCounterLabel, listRequests.RowDefinitions.Count - 1);
-            Grid.SetColumn(messagesCounterLabel, 1);
+            Image closeRequestBtn = new Image() { Source = new BitmapImage(new Uri("pack://application:,,,/Resources/closeBtn.png")) };
 
-            Label requestTimeLabel = new Label() { Content = $"{smsRequest.DiffRequestTime.ToString(@"hh\\:mm\\:ss")}" };
-            Grid.SetRow(requestTimeLabel, listRequests.RowDefinitions.Count - 1);
-            Grid.SetColumn(requestTimeLabel, 2);
+            StackPanel panel = new StackPanel() { Orientation = Orientation.Horizontal, Margin = new Thickness(10, 10, 0, 5) };
+            panel.Children.Add(phoneNumberLabel);
+            panel.Children.Add(messagesCounterLabel);
+            panel.Children.Add(requestTimeLabel);
+            panel.Children.Add(closeRequestBtn);
 
-            Button closeRequestBtn = new Button() { Content = "Close" };
-            Grid.SetRow(closeRequestBtn, listRequests.RowDefinitions.Count - 1);
-            Grid.SetColumn(closeRequestBtn, 3);
-
-            listRequests.Children.Add(phoneNumberLabel);
-            listRequests.Children.Add(messagesCounterLabel);
-            listRequests.Children.Add(requestTimeLabel);
-            listRequests.Children.Add(closeRequestBtn);
+            listRequests.Children.Add(panel);
         }
 
-        private void DispatcherTimer_Tick(object sender, EventArgs e)
+        public void NoRequest()
         {
-            
+            Label label = new Label()
+            {
+                Content = "Список запросов пуст!",
+                FontFamily = new FontFamily("Sitka Display"),
+                FontStyle = FontStyles.Italic,
+                FontSize = 16,
+                Foreground = Brushes.Red,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 5, 0, 5)
+            };
+
+            listRequests.Children.Add(label);
         }
     }
 }

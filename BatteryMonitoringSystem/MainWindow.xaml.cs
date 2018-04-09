@@ -31,6 +31,8 @@ namespace BatteryMonitoringSystem
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         static Barrier barrier = new Barrier(3);
+        private DispatcherTimer updateDiffRequestTime;
+        private DispatcherTimer updateStatisticsByReceivedMessage;
 
         private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
@@ -138,7 +140,7 @@ namespace BatteryMonitoringSystem
 
                     if (requests.Values.Sum(n => n.Item1.MessagesNumber - n.Item1.ReceivedMessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
                     {
-                        customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
+                        //customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
 
                         requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, DateTime.Now, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
                             new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
@@ -240,7 +242,21 @@ namespace BatteryMonitoringSystem
             {
                 ChangeButtonBackgroundColor((sender as Button).Name);
                 currentRequestsPanel.IsPressed = true;
-                
+
+                currentRequestsPanel.listRequests.Children.RemoveRange(1, currentRequestsPanel.listRequests.Children.Count - 1);
+                if (requests.Count == 0)
+                    currentRequestsPanel.NoRequest();
+                else
+                {
+                    foreach (var r in requests)
+                        currentRequestsPanel.AddNewRequest(r.Key, r.Value.Item1);
+
+                    foreach (var item in currentRequestsPanel.listRequests.Children)
+                        if (item is StackPanel panel)
+                            panel.Children.OfType<Image>().First().MouseUp += CloseRequestBtn_MouseUp;
+
+                    SetTimerInitialize();
+                }
                 Grid.SetRow(currentRequestsPanel, 1);
                 Grid.SetColumn(currentRequestsPanel, 1);
                 grid.Children.Add(currentRequestsPanel);
@@ -250,6 +266,43 @@ namespace BatteryMonitoringSystem
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 currentRequestsPanel.IsPressed = false;
             }
+        }
+
+        private void SetTimerInitialize()
+        {
+            updateDiffRequestTime = new DispatcherTimer();
+            updateDiffRequestTime.Interval = TimeSpan.FromSeconds(1);
+            updateDiffRequestTime.Tick += new EventHandler(UpdateDiffRequestTime);
+            updateDiffRequestTime.Start();
+
+            updateStatisticsByReceivedMessage = new DispatcherTimer();
+            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(60);
+            updateStatisticsByReceivedMessage.Tick += new EventHandler(UpdateStatisticsByReceivedMessage);
+            updateStatisticsByReceivedMessage.Start();
+        }
+
+        private void CloseRequestBtn_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Released)
+            {
+                var parent = (Panel)LogicalTreeHelper.GetParent(sender as Image);
+                requests.Remove((parent.Children[0] as Label).Content.ToString());
+                currentRequestsPanel.listRequests.Children.Remove(parent);
+                if (requests.Count == 0)
+                    currentRequestsPanel.NoRequest();
+            }
+        }
+
+        private void UpdateDiffRequestTime(object sender, EventArgs e)
+        {
+            foreach (var r in requests)
+                r.Value.Item1.OnPropertyChanged("DiffRequestTime");
+        }
+
+        private void UpdateStatisticsByReceivedMessage(object sender, EventArgs e)
+        {
+            foreach (var r in requests)
+                r.Value.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
         }
 
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
