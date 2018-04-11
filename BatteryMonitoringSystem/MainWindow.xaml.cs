@@ -43,21 +43,13 @@ namespace BatteryMonitoringSystem
             informationSourcePanel = new InformationSourcePanel(messagesHistoryView);
             informationSourcePanel.chooseSourceBtn.Click += (s, e) => { SetInformationSource(); };
             manualModePanel = new ManualModePanel();
-            manualModePanel.getRangeMessageBtn.Click += (s, e) => {
-                ComPortInitialization();
-                GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
-                    manualModePanel.FormSmsCommand(CommandCode.RangeMessage));
-            };
-            manualModePanel.getLastMessageBtn.Click += (s, e) => {
-                ComPortInitialization();
-                GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
-                    manualModePanel.FormSmsCommand(CommandCode.LastMessage));
-            };
+            manualModePanel.getRangeMessageBtn.Click += SendRequest;
+            manualModePanel.getLastMessageBtn.Click += SendRequest;
             currentRequestsPanel = new CurrentRequestsPanel();
 
             gsmUserPin = "";
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
-        }        
+        }       
 
         private void ComPortInitialization()
         {
@@ -70,19 +62,21 @@ namespace BatteryMonitoringSystem
                     programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
                 }
 
-                customComPort.GetCountSMSMessagesInStorage(ref gsmUserPin, out currentMessageCount, out maxMessageCountInStorage);
+                customComPort.EnterSimCardPin(ref gsmUserPin);
+                programStatus.Text = $"PIN введён верно";
+                Task.Delay(3000).Wait();
+                
+                customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
                 if (currentMessageCount > 0)
                 {
-                    customComPort.ClearMessageStorage(ref gsmUserPin);
+                    customComPort.ClearMessageStorage();
                     currentMessageCount = 0;
                 }
+                programStatus.Text = $"Инициализация хранилища сообщений выполнена";
             }
             catch (Exception ex)
             {
-                if (ex is UnauthorizedAccessException)
-                    MessageBox.Show($"Доступ к порту {customComPort.CustomSerialPort.PortName} запрещен", "Ошибка"); //Access to the port COM4 is denied
-                else MessageBox.Show(ex.Message, "Ошибка");
-                programStatus.Text = "Подключение не установлено. Проверьте соединение с GSM модемом.";
+                throw ex;
             }
         }
 
@@ -140,7 +134,7 @@ namespace BatteryMonitoringSystem
 
                     if (requests.Values.Sum(n => n.Item1.MessagesNumber - n.Item1.ReceivedMessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
                     {
-                        //customComPort.SendMessage(phoneNumber, ref gsmUserPin, command);
+                        customComPort.SendMessage(phoneNumber, command);
 
                         requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, DateTime.Now, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
                             new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
@@ -156,7 +150,7 @@ namespace BatteryMonitoringSystem
             }
             catch(Exception ex)
             {
-                programStatus.Text = ex.Message;
+                throw ex;
             }
         }
 
@@ -167,11 +161,11 @@ namespace BatteryMonitoringSystem
                 try
                 {
                     string phoneNumber = fromObject as string;
-                    customComPort.GetCountSMSMessagesInStorage(ref gsmUserPin, out int messageCount);
+                    customComPort.GetCountSMSMessagesInStorage(out int messageCount);
                     if (messageCount - currentMessageCount > 0)
                     {
                         currentMessageCount = messageCount;
-                        unreadShortMessages = customComPort.ReadSMS(ref gsmUserPin);
+                        unreadShortMessages = customComPort.ReadSMS();
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
 
                         requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
@@ -233,6 +227,25 @@ namespace BatteryMonitoringSystem
             {
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 manualModePanel.IsPressed = false;
+            }
+        }
+
+        private void SendRequest(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ComPortInitialization();
+                GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
+                    manualModePanel.FormSmsCommand((sender as Button).Name == "getLastMessageBtn" ? CommandCode.LastMessage : CommandCode.RangeMessage));
+            }
+            catch(Exception ex)
+            {
+                if (ex is UnauthorizedAccessException)
+                {
+                    MessageBox.Show($"Доступ к порту {customComPort.CustomSerialPort.PortName} запрещен", "Ошибка"); //Access to the port COM4 is denied
+                    programStatus.Text = "Подключение не установлено. Проверьте соединение с GSM модемом.";
+                }
+                else programStatus.Text = ex.Message;
             }
         }
 

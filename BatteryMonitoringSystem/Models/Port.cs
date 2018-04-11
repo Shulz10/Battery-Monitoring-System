@@ -47,7 +47,6 @@ namespace BatteryMonitoringSystem.Models
                 customSerialPort.PortName = GetComPortName();
 
                 customSerialPort.DataReceived += SerialPort_DataReceived;
-                //customSerialPort.ErrorReceived += SerialPort_ErrorReceived;
 
                 customSerialPort.Open();
             }
@@ -143,10 +142,9 @@ namespace BatteryMonitoringSystem.Models
                     }
                     else
                     {
-                        if (buffer.Length > 0)
-                            throw new ApplicationException("Response received is incomplete.");
-                        else
+                        if (buffer.Length == 0)
                             throw new ApplicationException("No data received from phone.");
+                        return buffer;
                     }
                 }
                 while (!buffer.Contains("\r\nOK\r\n") && !buffer.EndsWith("\r\n> ") && !buffer.EndsWith("\r\nERROR\r\n"));
@@ -159,7 +157,7 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Enter Sim card pin code
-        private void EnterSimCardPin(ref string PIN)
+        public void EnterSimCardPin(ref string PIN)
         {
             try
             {
@@ -181,21 +179,11 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Send Message
-        public void SendMessage(string phoneNumber, ref string PIN, string message)
+        public void SendMessage(string phoneNumber, string message)
         {
             try
             {
-                ExecuteCommand("AT", 300, "No phone connected.");                
-                ExecuteCommand("AT+CPIN?", 300, "");
-                if (PIN == "")
-                {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
-                        PIN = inputPINWindow.PIN.Text;
-                    else
-                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
-                }
-                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
+                ExecuteCommand("AT", 300, "No phone connected.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Failed to accept phone number.");
                 ExecuteCommand(message + char.ConvertFromUtf32(26), 10000, "Failed to send message.");
@@ -205,11 +193,6 @@ namespace BatteryMonitoringSystem.Models
                 throw ex;
             }
         }
-
-        //private void SerialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
-        //{
-
-        //}
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -225,21 +208,11 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Count SMS
-        public void GetCountSMSMessagesInStorage(ref string PIN, out int currentMessageCountInStorage, out int maxMessageCountInStorage)
+        public void GetCountSMSMessagesInStorage(out int currentMessageCountInStorage, out int maxMessageCountInStorage)
         {
             try
             {
                 ExecuteCommand("AT", 500, "No phone connected.");
-                ExecuteCommand("AT+CPIN?", 300, "");
-                if (PIN == "")
-                {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
-                        PIN = inputPINWindow.PIN.Text;
-                    else
-                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
-                }
-                ExecuteCommand($"AT+CPIN={PIN}\r", 500, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");
                 string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Failed to count SMS message.").Split(',');
@@ -252,21 +225,11 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
-        public void GetCountSMSMessagesInStorage(ref string PIN, out int currentMessageCountInStorage)
+        public void GetCountSMSMessagesInStorage(out int currentMessageCountInStorage)
         {
             try
             {
                 ExecuteCommand("AT", 500, "No phone connected.");
-                ExecuteCommand("AT+CPIN?", 300, "");
-                if (PIN == "")
-                {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
-                        PIN = inputPINWindow.PIN.Text;
-                    else
-                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
-                }
-                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");
                 string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Failed to count SMS message.").Split(',');
@@ -279,25 +242,16 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Read SMS
-        public List<ShortMessage> ReadSMS(ref string PIN)
+        public List<ShortMessage> ReadSMS()
         {
             List<ShortMessage> messages = null;
             try
             {
                 ExecuteCommand("AT", 300, "No phone connected.");
-                ExecuteCommand("AT+CPIN?", 300, "");
-                if (PIN == "")
-                {
-                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
-                    if (inputPINWindow.ShowDialog() == true)
-                        PIN = inputPINWindow.PIN.Text;
-                    else return null;
-                }
-                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
                 ExecuteCommand("AT+CMGF=1", 300, "Failed to set message format.");
-                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");//"AT+CPMS=\"SM\",\"SM\",\"SM\""
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");
                 ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
-                ExecuteCommand("AT+CPMS=\"ME\"", 300, "Failed to select message storage.");//"AT+CPMS=\"SM\""
+                ExecuteCommand("AT+CPMS=\"ME\"", 300, "Failed to select message storage.");
                 string response = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 30000, "Failed to read the messages.");
 
                 #region Parse Messages
@@ -316,12 +270,11 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Clear SMS storage
-        public void ClearMessageStorage(ref string PIN)
+        public void ClearMessageStorage()
         {
             try
             {
-                GetCountSMSMessagesInStorage(ref PIN, out int currentCountMessageInStorage);
-                ExecuteCommand($"AT+CMGD={currentCountMessageInStorage},1", 500, "Failed to clear SMS storage");
+                ExecuteCommand($"AT+CMGD=1,4", 500, "Failed to clear SMS storage");
             }
             catch(Exception ex)
             {
