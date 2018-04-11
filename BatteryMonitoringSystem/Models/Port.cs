@@ -158,6 +158,28 @@ namespace BatteryMonitoringSystem.Models
             return buffer;
         }
 
+        //Enter Sim card pin code
+        private void EnterSimCardPin(ref string PIN)
+        {
+            try
+            {
+                ExecuteCommand("AT+CPIN?", 300, "");
+                if (PIN == "")
+                {
+                    InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
+                    if (inputPINWindow.ShowDialog() == true)
+                        PIN = inputPINWindow.PIN.Text;
+                    else
+                        throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
+                }
+                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Invalid PIN.");
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         //Send Message
         public void SendMessage(string phoneNumber, ref string PIN, string message)
         {
