@@ -8,7 +8,7 @@
         Height="600" Width="1200" WindowStartupLocation="CenterScreen">
     <Grid x:Name="grid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="85"></RowDefinition>
+            <RowDefinition Height="60"></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition Height="25"></RowDefinition>
         </Grid.RowDefinitions>
@@ -19,14 +19,6 @@
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.ColumnSpan="3" Background="#FFFC4150">
             <Label DockPanel.Dock="Left" Content="Battery Monitoring System" HorizontalAlignment="Left" Margin="30,0,0,0" Grid.ColumnSpan="2" VerticalContentAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" FontFamily="Sitka Display" FontSize="16" Foreground="White" />
-            <Button x:Name="authorizationButton" DockPanel.Dock="Right" HorizontalAlignment="Right" Panel.ZIndex="1" Background="#FF9E3B43" BorderThickness="0" Margin="0,5,10,5">
-                <Button.Content>
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <Image Source="Resources/user.png"/>
-                        <Image Source="Resources/Action-arrow-blue-down-icon.png" Height="10" Margin="5,5,0,0"/>
-                    </StackPanel>
-                </Button.Content>
-            </Button>
         </DockPanel>
         <StackPanel x:Name="sideMenuPanel" Grid.Column="0" Grid.Row="1" Background="#FFB6B6B6" Orientation="Vertical" Panel.ZIndex="1">
             <Separator Margin="0"/>
