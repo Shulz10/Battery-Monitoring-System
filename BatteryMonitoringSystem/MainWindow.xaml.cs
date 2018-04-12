@@ -297,10 +297,12 @@ namespace BatteryMonitoringSystem
             if (e.LeftButton == System.Windows.Input.MouseButtonState.Released)
             {
                 var parent = (Panel)LogicalTreeHelper.GetParent(sender as Image);
-                requests.Remove((parent.Children[0] as Label).Content.ToString());
+                string phoneNumber = (parent.Children[0] as Label).Content.ToString();
+                requests.Remove(phoneNumber);
                 currentRequestsPanel.listRequests.Children.Remove(parent);
                 if (requests.Count == 0)
                     currentRequestsPanel.NoRequest();
+                programStatus.Text = $"Запрос по номеру {phoneNumber} отменён";
             }
         }
 
@@ -434,6 +436,8 @@ namespace BatteryMonitoringSystem
                         manualModePanel.ChangeButtonsAvailability();
                 }
             }
+
+            programStatus.Text = $"Прием данных от {byPhoneNumber} завершён";
         }
 
         private void ChangeButtonBackgroundColor(string btnName)
