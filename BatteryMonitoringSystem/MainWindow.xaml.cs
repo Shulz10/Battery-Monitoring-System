@@ -62,6 +62,7 @@ namespace BatteryMonitoringSystem
                     programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
                 }
 
+                
                 customComPort.EnterSimCardPin(ref gsmUserPin);
                 programStatus.Text = $"PIN введён верно";
                 Task.Delay(3000).Wait();
@@ -168,17 +169,13 @@ namespace BatteryMonitoringSystem
                         unreadShortMessages = customComPort.ReadSMS();
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
 
-                        requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
-
                         if (unreadShortMessages != null)
                         {
+                            requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
                             WriteSmsInDb(unreadShortMessages);
                             AddNewMessageToDataTable(unreadShortMessages);
                             customComPort.RemoveMessagesByNumber(unreadShortMessages);
                         }
-
-                        if (requests[phoneNumber].Item1.ReceivedMessagesNumber == requests[phoneNumber].Item1.MessagesNumber)
-                            StopReceivedData(phoneNumber);
                     }
                 }
                 catch (Exception ex)
@@ -234,7 +231,8 @@ namespace BatteryMonitoringSystem
         {
             try
             {
-                ComPortInitialization();
+                if(customComPort.CustomSerialPort == null)
+                    ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand((sender as Button).Name == "getLastMessageBtn" ? CommandCode.LastMessage : CommandCode.RangeMessage));
             }
@@ -289,7 +287,7 @@ namespace BatteryMonitoringSystem
             updateDiffRequestTime.Start();
 
             updateStatisticsByReceivedMessage = new DispatcherTimer();
-            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(60);
+            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(35);
             updateStatisticsByReceivedMessage.Tick += new EventHandler(UpdateStatisticsByReceivedMessage);
             updateStatisticsByReceivedMessage.Start();
         }
@@ -315,7 +313,14 @@ namespace BatteryMonitoringSystem
         private void UpdateStatisticsByReceivedMessage(object sender, EventArgs e)
         {
             foreach (var r in requests)
+            {
                 r.Value.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
+                if (r.Value.Item1.ReceivedMessagesNumber == r.Value.Item1.MessagesNumber)
+                {
+                    Task.Delay(10000).Wait();
+                    StopReceivedData(r.Key);
+                }
+            }
         }
 
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
@@ -398,9 +403,28 @@ namespace BatteryMonitoringSystem
 
         private void StopReceivedData(string byPhoneNumber)
         {
+            //Remove request from dictionary
             requests[byPhoneNumber].Item2.Change(Timeout.Infinite, Timeout.Infinite);
             requests[byPhoneNumber].Item2.Dispose();
             requests.Remove(byPhoneNumber);
+
+            //Remove element from CurrentRequestPanel
+            if (currentRequestsPanel.IsPressed)
+            {
+                foreach (var child in currentRequestsPanel.listRequests.Children)
+                {
+                    if (child is StackPanel panel)
+                    {
+                        if (panel.FindName($"request{byPhoneNumber.TrimStart('+')}") != null)
+                        {
+                            currentRequestsPanel.listRequests.Children.Remove(panel);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //Enabled comboBoxItem with this phoneNumber
             foreach (ComboBoxItem comboBoxItem in manualModePanel.choosePhoneNumber.Items)
             {
                 if (comboBoxItem.Content.ToString() == byPhoneNumber)
@@ -487,8 +511,8 @@ namespace BatteryMonitoringSystem
             var taskFactory = new TaskFactory();
             Task task1 = taskFactory.StartNew(CreateExcelFile);
             //for(int i = 0; i < choseInformationSource.Count; i++)
-                Task task2 = taskFactory.StartNew<List<ShortMessage>>(GetListMessageForPhoneNumber, choseInformationSource[0]);
-            barrier.SignalAndWait();
+            Task task2 = taskFactory.StartNew<List<ShortMessage>>(GetListMessageForPhoneNumber, choseInformationSource[0]);
+                barrier.SignalAndWait();
 
             if (choseInformationSource.Count > 0)
             {

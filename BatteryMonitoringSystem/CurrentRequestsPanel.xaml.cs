@@ -82,7 +82,7 @@ namespace BatteryMonitoringSystem
 
         public void AddNewRequest(string phoneNumber, SmsRequest smsRequest)
         {
-            Label phoneNumberLabel = new Label() { Content = phoneNumber, Width = 120 };
+            Label phoneNumberLabel = new Label() { Name = $"request{phoneNumber.TrimStart('+')}", Content = phoneNumber, Width = 120 };
 
             Label messagesCounterLabel = new Label() { Width = 40 };
             Binding binding = new Binding("StatisticsByReceivedMessage")

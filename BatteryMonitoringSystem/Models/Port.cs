@@ -106,6 +106,19 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                if (e.EventType == SerialData.Chars)
+                    receiveNow.Set();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         //Execute AT Command
         public string ExecuteCommand(string command, int responseTimeout, string errorMessage)
         {
@@ -186,22 +199,9 @@ namespace BatteryMonitoringSystem.Models
                 ExecuteCommand("AT", 300, "No phone connected.");
                 ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
                 ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Failed to accept phone number.");
-                ExecuteCommand(message + char.ConvertFromUtf32(26), 10000, "Failed to send message.");
+                ExecuteCommand(message + char.ConvertFromUtf32(26), 15000, "Failed to send message.");
             }
             catch(Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            try
-            {
-                if (e.EventType == SerialData.Chars)
-                    receiveNow.Set();
-            }
-            catch (Exception ex)
             {
                 throw ex;
             }
