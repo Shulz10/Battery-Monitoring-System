@@ -30,7 +30,6 @@ namespace BatteryMonitoringSystem
         private string gsmUserPin;
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
-        static Barrier barrier = new Barrier(3);
         private DispatcherTimer updateDiffRequestTime;
         private DispatcherTimer updateStatisticsByReceivedMessage;
 
@@ -373,10 +372,10 @@ namespace BatteryMonitoringSystem
             {
                 messagesHistoryView.Items.Add(new ListViewItem()
                 {
-                    Content = new
+                    Content = new DataTableMessageRepresentation
                     {
                         MessageNumber = msg.MessageNumber,
-                        PhoneNumber = msg.Sender,
+                        Sender = msg.Sender,
                         ReceivedDate = msg.ReceivedDateTime.Date,
                         ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
                         Message = msg.Message
@@ -391,10 +390,10 @@ namespace BatteryMonitoringSystem
             string messageBoxText = $"Запрос по номеру {newMessages[0].Sender} содержит ранее полученные сообщения: ";
             foreach (var msg in newMessages)
             {
-                var messages = new
+                var messages = new DataTableMessageRepresentation
                 {
                     MessageNumber = msg.MessageNumber,
-                    PhoneNumber = msg.Sender,
+                    Sender = msg.Sender,
                     ReceivedDate = msg.ReceivedDateTime.Date,
                     ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
                     Message = msg.Message
@@ -552,62 +551,49 @@ namespace BatteryMonitoringSystem
 
         private void SaveDataToExcelFile(object sender, RoutedEventArgs e)
         {
-            var taskFactory = new TaskFactory();
-            Task task1 = taskFactory.StartNew(CreateExcelFile);
-            //for(int i = 0; i < choseInformationSource.Count; i++)
-            Task task2 = taskFactory.StartNew<List<ShortMessage>>(GetListMessageForPhoneNumber, choseInformationSource[0]);
-                barrier.SignalAndWait();
-
             if (choseInformationSource.Count > 0)
             {
-                excelApp = new Excel.Application();
-                excelApp.SheetsInNewWorkbook = choseInformationSource.Count;
-                var excelWorkbook = excelApp.Workbooks.Add();
-                int index = 0;
-                foreach (Excel.Worksheet sheet in excelApp.Worksheets)
-                {
-                    sheet.Name = choseInformationSource[index];
-                    sheet.Cells[1, "A"] = "№";
-                    sheet.Columns["A"].ColumnWidth = 5; 
-                    sheet.Cells[1, "B"] = "Дата";
-                    sheet.Columns["B"].ColumnWidth = 30;
-                    sheet.Cells[1, "C"] = "Время";
-                    sheet.Columns["C"].ColumnWidth = 30;
-                    sheet.Cells[1, "D"] = "Сообщение";
-                    sheet.Columns["D"].ColumnWidth = 100;
-                    index++;
-                }
+                Task<Excel.Workbook> createExcelFileTask = new Task<Excel.Workbook>(() => CreateExcelFileAsync());
+                createExcelFileTask.Start();
+                
+                var excelWorkbook = createExcelFileTask.Result;
 
-                for (int k = 0; k < choseInformationSource.Count; k++)
-                {
-                    List<ShortMessage> listShortMessage = new List<ShortMessage>();
-                    foreach (ShortMessage shortMessage in messagesHistoryView.Items)
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new DispatcherOperationCallback(delegate (object value)
+                {                                          
+                    for (int k = 0; k < choseInformationSource.Count; k++)
                     {
-                        if(shortMessage.Sender == choseInformationSource[k])
-                            listShortMessage.Add(shortMessage);
+                        List<DataTableMessageRepresentation> listShortMessage = new List<DataTableMessageRepresentation>();
+                        foreach (ListViewItem item in messagesHistoryView.Items)
+                        {
+                            var msg = (DataTableMessageRepresentation)item.Content;
+                            if (msg.Sender == choseInformationSource[k])
+                                listShortMessage.Add(msg);
+                        }
+
+
+                        var rowIndex = 1;
+                        foreach (var row in listShortMessage)
+                        {
+                            rowIndex++;
+                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "A"] = row.MessageNumber;
+                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "B"] = row.ReceivedDate;
+                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "C"] = row.ReceivedTime;
+                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "D"] = row.Message;
+                        }
+
                     }
 
-                    var rowIndex = 1;
-                    foreach (var row in listShortMessage)
-                    {
-                        rowIndex++;
-                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "A"] = row.MessageNumber;
-                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "B"] = row.ReceivedDateTime.Date;
-                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "C"] = row.ReceivedDateTime.TimeOfDay.ToString();
-                        excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "D"] = row.Message;
-                    }
+                    excelWorkbook.SaveAs(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("dd-MM-yyyy H-mm-ss") + ".xlsx", Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                        Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
 
-                }
-
-                excelWorkbook.SaveAs(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("dd-MM-yyyy H-mm-ss") + ".xlsx", Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                    Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-
-                programStatus.Text = "Excel файл успешно создан!";
-                excelApp.Quit();
+                    programStatus.Text = "Excel файл успешно создан!";
+                    excelApp.Quit();
+                    return null;
+                }), excelWorkbook);
             }
         }
 
-        private void CreateExcelFile()
+        private Excel.Workbook CreateExcelFileAsync()
         {
             excelApp = new Excel.Application();
             excelApp.SheetsInNewWorkbook = choseInformationSource.Count;
@@ -626,18 +612,7 @@ namespace BatteryMonitoringSystem
                 sheet.Columns["D"].ColumnWidth = 100;
                 index++;
             }
-            barrier.SignalAndWait();
-        }
-
-        private List<ShortMessage> GetListMessageForPhoneNumber(object phoneNumber)
-        {
-            List<ShortMessage> listShortMessage = new List<ShortMessage>();
-            foreach (ShortMessage shortMessage in messagesHistoryView.Items)
-            {
-                if (shortMessage.Sender == phoneNumber.ToString())
-                    listShortMessage.Add(shortMessage);
-            }
-            return listShortMessage;
+            return excelWorkbook;
         }
 
         private void MessagesHistoryViewItem_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)

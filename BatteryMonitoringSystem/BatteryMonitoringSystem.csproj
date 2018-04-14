@@ -142,6 +142,7 @@
     <Compile Include="ManualModePanel.xaml.cs">
       <DependentUpon>ManualModePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\DataTableMessageRepresentation.cs" />
     <Compile Include="Models\Port.cs" />
     <Compile Include="Models\GSMUser.cs" />
     <Compile Include="Models\Information.cs" />

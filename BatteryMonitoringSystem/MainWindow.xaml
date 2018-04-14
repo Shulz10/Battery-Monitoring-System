@@ -47,7 +47,7 @@
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="50"/>
-                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=PhoneNumber}" Width="160"/>
+                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=Sender}" Width="160"/>
                     <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=ReceivedDate, StringFormat=dd.MM.yyyy }" Width="130"/>
                     <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=ReceivedTime}" Width="130"/>
                     <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Path=Message}"/>
