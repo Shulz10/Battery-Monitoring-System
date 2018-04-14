@@ -53,6 +53,11 @@
                     <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Path=Message}"/>
                 </GridView>
             </ListView.View>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="MouseEnter" Handler="MessagesHistoryViewItem_MouseEnter"/>
+                </Style>
+            </ListView.ItemContainerStyle>
         </ListView>
         <StatusBar x:Name="statusBar" Grid.Row="2" Grid.ColumnSpan="3">
             <StatusBarItem Width="74" HorizontalAlignment="Left">

@@ -110,7 +110,7 @@ namespace BatteryMonitoringSystem
 
 
                         if (query.Count > 0)
-                            AddNewMessageToDataTable(query);
+                            AddMessagesFromDb(query);
 
                         programStatus.Text = "Источники информации успешно выбраны!";
                     }
@@ -231,7 +231,7 @@ namespace BatteryMonitoringSystem
         {
             try
             {
-                if(customComPort.CustomSerialPort == null)
+                if(customComPort == null)
                     ComPortInitialization();
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
                     manualModePanel.FormSmsCommand((sender as Button).Name == "getLastMessageBtn" ? CommandCode.LastMessage : CommandCode.RangeMessage));
@@ -287,7 +287,7 @@ namespace BatteryMonitoringSystem
             updateDiffRequestTime.Start();
 
             updateStatisticsByReceivedMessage = new DispatcherTimer();
-            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(35);
+            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(15);
             updateStatisticsByReceivedMessage.Tick += new EventHandler(UpdateStatisticsByReceivedMessage);
             updateStatisticsByReceivedMessage.Start();
         }
@@ -314,14 +314,17 @@ namespace BatteryMonitoringSystem
 
         private void UpdateStatisticsByReceivedMessage(object sender, EventArgs e)
         {
-            foreach (var r in requests)
-            {
+            foreach(var r in requests)
                 r.Value.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
+
+            Task.Delay(10000).Wait();
+
+            for (int index = 0; index < requests.Count;)
+            {
+                var r = requests.ElementAt(index);
                 if (r.Value.Item1.ReceivedMessagesNumber == r.Value.Item1.MessagesNumber)
-                {
-                    Task.Delay(10000).Wait();
                     StopReceivedData(r.Key);
-                }
+                else index++;
             }
         }
 
@@ -364,17 +367,54 @@ namespace BatteryMonitoringSystem
             programStatus.Text = "Файл успешно выгружен в таблицу.";
         }
 
+        private void AddMessagesFromDb(List<ShortMessage> messages)
+        {
+            foreach(var msg in messages)
+            {
+                messagesHistoryView.Items.Add(new ListViewItem()
+                {
+                    Content = new
+                    {
+                        MessageNumber = msg.MessageNumber,
+                        PhoneNumber = msg.Sender,
+                        ReceivedDate = msg.ReceivedDateTime.Date,
+                        ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
+                        Message = msg.Message
+                    }
+                });
+            }
+        }
+
         private void AddNewMessageToDataTable(List<ShortMessage> newMessages)
         {
+            List<ShortMessage> oldMessages = new List<ShortMessage>();
+            string messageBoxText = $"Запрос по номеру {newMessages[0].Sender} содержит ранее полученные сообщения: ";
             foreach (var msg in newMessages)
-                messagesHistoryView.Items.Add(new
+            {
+                var messages = new
                 {
                     MessageNumber = msg.MessageNumber,
                     PhoneNumber = msg.Sender,
                     ReceivedDate = msg.ReceivedDateTime.Date,
                     ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
                     Message = msg.Message
-                });
+                };
+
+                int msgIndex = messagesHistoryView.Items.IndexOf(messages);
+                if (msgIndex == -1)
+                {
+                    messagesHistoryView.Items.Add(new ListViewItem() { Content = messages });    
+                    (messagesHistoryView.Items[messagesHistoryView.Items.Count - 1] as ListViewItem).Background = new SolidColorBrush(Color.FromRgb(252, 65, 80));
+                }
+                else
+                {
+                    messageBoxText += msg.MessageNumber;
+                    oldMessages.Add(msg);
+                }
+            }
+
+            if(oldMessages.Count > 0)
+                MessageBox.Show(messageBoxText, "Результат запроса");
         }
 
         private void WriteSmsInDb(List<ShortMessage> listShortMessage)
@@ -598,6 +638,12 @@ namespace BatteryMonitoringSystem
                     listShortMessage.Add(shortMessage);
             }
             return listShortMessage;
+        }
+
+        private void MessagesHistoryViewItem_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (sender is ListViewItem item)
+                item.Background = Brushes.White;
         }
     }
 }
