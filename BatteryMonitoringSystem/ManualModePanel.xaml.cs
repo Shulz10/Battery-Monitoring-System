@@ -93,7 +93,11 @@ namespace BatteryMonitoringSystem
                     case CommandCode.RangeMessage:
                         {
                             if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
+                            {
                                 command = phoneNumber + "1" + ConvertDecimalNumberToHex(fromN, 8) + "01" + "00000000";
+                                messageCountTxt.Text = "1";
+                                beforeTxt.Text = fromTxt.Text;
+                            }
                             else
                             {
                                 if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text == "")
