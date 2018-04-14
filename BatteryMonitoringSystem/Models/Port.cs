@@ -252,7 +252,7 @@ namespace BatteryMonitoringSystem.Models
                 ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "");
                 ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Failed to set character set.");
                 ExecuteCommand("AT+CPMS=\"ME\"", 300, "Failed to select message storage.");
-                string response = ExecuteCommand("AT+CMGL=\"REC UNREAD\"", 30000, "Failed to read the messages.");
+                string response = ExecuteCommand("AT+CMGL=\"ALL\"", 30000, "Failed to read the messages.");
 
                 #region Parse Messages
                 messages = ParseMessages(response);
