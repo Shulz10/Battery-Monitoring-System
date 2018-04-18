@@ -212,7 +212,7 @@ namespace BatteryMonitoringSystem
                     manualModePanel.choosePhoneNumber.Items.Clear();
                     manualModePanel.choosePhoneNumber.Items.Add(new ComboBoxItem() { Visibility = Visibility.Collapsed, Content = "Выберите получателя" });
                     foreach (var source in choseInformationSource)
-                        manualModePanel.choosePhoneNumber.Items.Add(new ComboBoxItem() { Content = source });
+                        manualModePanel.choosePhoneNumber.Items.Add(new ComboBoxItem() { Content = source, IsEnabled = requests.ContainsKey(source) ? false : true });
                     manualModePanel.choosePhoneNumber.SelectedIndex = 0;
                 }
                 Grid.SetRow(manualModePanel, 1);
@@ -286,7 +286,7 @@ namespace BatteryMonitoringSystem
             updateDiffRequestTime.Start();
 
             updateStatisticsByReceivedMessage = new DispatcherTimer();
-            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(15);
+            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(25);
             updateStatisticsByReceivedMessage.Tick += new EventHandler(UpdateStatisticsByReceivedMessage);
             updateStatisticsByReceivedMessage.Start();
         }
@@ -325,6 +325,13 @@ namespace BatteryMonitoringSystem
                     StopReceivedData(r.Key);
                 else index++;
             }
+
+            if (requests.Count == 0)
+            {
+                currentRequestsPanel.NoRequest();
+                updateStatisticsByReceivedMessage.Stop();
+                updateDiffRequestTime.Stop();
+            }
         }
 
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
@@ -332,38 +339,37 @@ namespace BatteryMonitoringSystem
             operationProgress.Visibility = Visibility.Visible;
             dataLoading.Value = 0;
             
-            await Task.Run(async () =>
+            await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)async delegate()
             {
                 IEnumerable<DriveInfo> drivesInfo = DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Removable);
                 foreach (var drive in drivesInfo)
                 {
                     if (drive.IsReady)
                     {
-                        string filePath = Directory.GetFiles(string.Format(@"{0}", drive.Name), "+375*").FirstOrDefault();
+                        string filePath = Directory.GetFiles(string.Format(@"{0}", drive.Name), "375*").FirstOrDefault();
                         if (filePath != null)
                         {
                             FileInfo smsHistoryFile = new FileInfo(filePath);
                             double stepValue = await GetStepValueForProgressOperation(filePath);
                             using (StreamReader streamReader = smsHistoryFile.OpenText())
                             {
+                                List<ShortMessage> listShortMessages = new List<ShortMessage>();
                                 string sms;
-                                while((sms = streamReader.ReadLine()) != null)
+                                while ((sms = streamReader.ReadLine()) != null)
                                 {
-                                    messagesHistoryView.Items.Add(new ShortMessage(smsHistoryFile.Name.Replace(".txt", ""), sms));
-                                    await dataLoading.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                                        new DispatcherOperationCallback(delegate(object value)
-                                        {
-                                            dataLoading.Value += Convert.ToDouble(value);
-                                            return null;
-                                        }), stepValue);
+                                    listShortMessages.Add(new ShortMessage($"+{smsHistoryFile.Name.Replace(".txt", "")}", sms));
+                                    dataLoading.Value += Convert.ToDouble(stepValue);
                                 }
+
+                                AddNewMessageToDataTable(listShortMessages);
+                                programStatus.Text = "Файл успешно выгружен в таблицу.";
+                                await Task.Run(() => WriteSmsInDb(listShortMessages));                               
+                                operationProgress.Visibility = Visibility.Hidden;
                             }
                         }
                     }
                 }
-            });
-            operationProgress.Visibility = Visibility.Hidden;
-            programStatus.Text = "Файл успешно выгружен в таблицу.";
+            });            
         }
 
         private void AddMessagesFromDb(List<ShortMessage> messages)
@@ -372,14 +378,7 @@ namespace BatteryMonitoringSystem
             {
                 messagesHistoryView.Items.Add(new ListViewItem()
                 {
-                    Content = new DataTableMessageRepresentation
-                    {
-                        MessageNumber = msg.MessageNumber,
-                        Sender = msg.Sender,
-                        ReceivedDate = msg.ReceivedDateTime.Date,
-                        ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
-                        Message = msg.Message
-                    }
+                    Content = new DataTableMessageRepresentation(msg.MessageNumber, msg.Sender, msg.ReceivedDateTime.Date, msg.ReceivedDateTime.ToString("HH:mm:ss"), msg.Message)
                 });
             }
         }
@@ -390,14 +389,7 @@ namespace BatteryMonitoringSystem
             string messageBoxText = $"Запрос по номеру {newMessages[0].Sender} содержит ранее полученные сообщения: ";
             foreach (var msg in newMessages)
             {
-                var messages = new DataTableMessageRepresentation
-                {
-                    MessageNumber = msg.MessageNumber,
-                    Sender = msg.Sender,
-                    ReceivedDate = msg.ReceivedDateTime.Date,
-                    ReceivedTime = msg.ReceivedDateTime.ToString("HH:mm:ss"),
-                    Message = msg.Message
-                };
+                var messages = new DataTableMessageRepresentation(msg.MessageNumber, msg.Sender, msg.ReceivedDateTime.Date, msg.ReceivedDateTime.ToString("HH:mm:ss"), msg.Message);
 
                 int msgIndex = messagesHistoryView.Items.IndexOf(messages);
                 if (msgIndex == -1)
@@ -416,11 +408,11 @@ namespace BatteryMonitoringSystem
                 MessageBox.Show(messageBoxText, "Результат запроса");
         }
 
-        private void WriteSmsInDb(List<ShortMessage> listShortMessage)
+        private void WriteSmsInDb(List<ShortMessage> listShortMessages)
         {
             using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
             {
-                foreach (var msg in listShortMessage)
+                foreach (var msg in listShortMessages)
                 {
                     var query = context.Informations.Where(info => info.MessageNumber == msg.MessageNumber &&
                         info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber == msg.Sender).ToList();
@@ -456,7 +448,7 @@ namespace BatteryMonitoringSystem
                 {
                     if (child is StackPanel panel)
                     {
-                        if (panel.FindName($"request{byPhoneNumber.TrimStart('+')}") != null)
+                        if (panel.Name == $"request{byPhoneNumber.TrimStart('+')}")
                         {
                             currentRequestsPanel.listRequests.Children.Remove(panel);
                             break;

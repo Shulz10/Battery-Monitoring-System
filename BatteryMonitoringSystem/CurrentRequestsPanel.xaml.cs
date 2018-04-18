@@ -82,7 +82,7 @@ namespace BatteryMonitoringSystem
 
         public void AddNewRequest(string phoneNumber, SmsRequest smsRequest)
         {
-            Label phoneNumberLabel = new Label() { Name = $"request{phoneNumber.TrimStart('+')}", Content = phoneNumber, Width = 120 };
+            Label phoneNumberLabel = new Label() { Content = phoneNumber, Width = 120 };
 
             Label messagesCounterLabel = new Label() { Width = 40 };
             Binding binding = new Binding("StatisticsByReceivedMessage")
@@ -102,7 +102,7 @@ namespace BatteryMonitoringSystem
 
             Image closeRequestBtn = new Image() { Source = new BitmapImage(new Uri("pack://application:,,,/Resources/closeBtn.png")) };
 
-            StackPanel panel = new StackPanel() { Orientation = Orientation.Horizontal, Margin = new Thickness(10, 10, 0, 5) };
+            StackPanel panel = new StackPanel() { Name = $"request{phoneNumber.TrimStart('+')}", Orientation = Orientation.Horizontal, Margin = new Thickness(10, 10, 0, 5) };
             panel.Children.Add(phoneNumberLabel);
             panel.Children.Add(messagesCounterLabel);
             panel.Children.Add(requestTimeLabel);
