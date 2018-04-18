@@ -25,7 +25,6 @@ namespace BatteryMonitoringSystem
         private CurrentRequestsPanel currentRequestsPanel;
         private List<string> choseInformationSource;
         private List<ShortMessage> unreadShortMessages;
-        private int currentMessageCount;
         private int maxMessageCountInStorage;
         private string gsmUserPin;
         private double messagesHistoryListViewActualWidth;
@@ -66,12 +65,9 @@ namespace BatteryMonitoringSystem
                 programStatus.Text = $"PIN введён верно";
                 Task.Delay(3000).Wait();
                 
-                customComPort.GetCountSMSMessagesInStorage(out currentMessageCount, out maxMessageCountInStorage);
+                customComPort.GetCountSMSMessagesInStorage(out int currentMessageCount, out maxMessageCountInStorage);
                 if (currentMessageCount > 0)
-                {
                     customComPort.ClearMessageStorage();
-                    currentMessageCount = 0;
-                }
                 programStatus.Text = $"Инициализация хранилища сообщений выполнена";
             }
             catch (Exception ex)
@@ -162,9 +158,8 @@ namespace BatteryMonitoringSystem
                 {
                     string phoneNumber = fromObject as string;
                     customComPort.GetCountSMSMessagesInStorage(out int messageCount);
-                    if (messageCount - currentMessageCount > 0)
+                    if (messageCount > 0)
                     {
-                        currentMessageCount = messageCount;
                         unreadShortMessages = customComPort.ReadSMS();
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
 
@@ -311,19 +306,20 @@ namespace BatteryMonitoringSystem
                 r.Value.Item1.OnPropertyChanged("DiffRequestTime");
         }
 
-        private void UpdateStatisticsByReceivedMessage(object sender, EventArgs e)
+        private async void UpdateStatisticsByReceivedMessage(object sender, EventArgs e)
         {
-            foreach(var r in requests)
-                r.Value.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
-
-            Task.Delay(10000).Wait();
-
-            for (int index = 0; index < requests.Count;)
+            List<string> listPhoneNumbers = new List<string>();
+            foreach (var r in requests)
             {
-                var r = requests.ElementAt(index);
+                r.Value.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
                 if (r.Value.Item1.ReceivedMessagesNumber == r.Value.Item1.MessagesNumber)
-                    StopReceivedData(r.Key);
-                else index++;
+                    listPhoneNumbers.Add(r.Key);
+            }
+
+            if(listPhoneNumbers.Count > 0)
+            {
+                await Task.Delay(10000);
+                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate () { foreach (var numb in listPhoneNumbers) StopReceivedData(numb); });
             }
 
             if (requests.Count == 0)
@@ -391,7 +387,7 @@ namespace BatteryMonitoringSystem
             {
                 var messages = new DataTableMessageRepresentation(msg.MessageNumber, msg.Sender, msg.ReceivedDateTime.Date, msg.ReceivedDateTime.ToString("HH:mm:ss"), msg.Message);
 
-                int msgIndex = messagesHistoryView.Items.IndexOf(messages);
+                int msgIndex = messagesHistoryView.Items.IndexOf(new ListViewItem() { Content = messages });
                 if (msgIndex == -1)
                 {
                     messagesHistoryView.Items.Add(new ListViewItem() { Content = messages });    
