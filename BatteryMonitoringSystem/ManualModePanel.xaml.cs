@@ -112,7 +112,7 @@ namespace BatteryMonitoringSystem
                                 }
                                 else if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text != "")
                                 {
-                                    if (beforeN - fromN + 1 != messageCount)
+                                    if (beforeN - fromN + 1 != messageCount && messageCount != 1)
                                         return "Ошибка! Проверьте правильность введенных данных.";
                                 }
 
@@ -145,10 +145,11 @@ namespace BatteryMonitoringSystem
 
         private void CommandParameterChanged(object sender, TextChangedEventArgs e)
         {
-            if (fromTxt.Text == "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
-                getRangeMessageBtn.IsEnabled = false;
-            else if((choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled)
+            if ((choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled && (choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString() != "Выберите получателя" &&
+                (fromTxt.Text != "" || beforeTxt.Text != "" || messageCountTxt.Text != ""))
                 getRangeMessageBtn.IsEnabled = true;
+            else
+                getRangeMessageBtn.IsEnabled = false;
         }
 
         private void CheckEnteredCharacter(object sender, TextCompositionEventArgs e)
@@ -169,10 +170,21 @@ namespace BatteryMonitoringSystem
             ComboBoxItem comboBoxItem = choosePhoneNumber.SelectedItem as ComboBoxItem;
             if (comboBoxItem != null)
             {
-                if (comboBoxItem.IsEnabled && comboBoxItem.Content.ToString() != "Выберите получателя")
+                if (comboBoxItem.IsEnabled && comboBoxItem.Content.ToString() != "Выберите получателя" && (fromTxt.Text != "" || beforeTxt.Text != "" || messageCountTxt.Text != ""))
+                {
                     getLastMessageBtn.IsEnabled = true;
+                    getRangeMessageBtn.IsEnabled = true;
+                }
+                else if ((comboBoxItem.IsEnabled && comboBoxItem.Content.ToString() != "Выберите получателя") && (fromTxt.Text == "" || beforeTxt.Text == "" || messageCountTxt.Text == ""))
+                {
+                    getLastMessageBtn.IsEnabled = true;
+                    getRangeMessageBtn.IsEnabled = false;
+                }
                 else
+                {
                     getLastMessageBtn.IsEnabled = false;
+                    getRangeMessageBtn.IsEnabled = false;
+                }
             }
         }
     }
