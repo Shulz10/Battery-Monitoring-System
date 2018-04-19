@@ -59,8 +59,7 @@ namespace BatteryMonitoringSystem
                     customComPort.OpenComPort();
                     programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
                 }
-
-                
+              
                 customComPort.EnterSimCardPin(ref gsmUserPin);
                 programStatus.Text = $"PIN введён верно";
                 Task.Delay(3000).Wait();
@@ -150,9 +149,9 @@ namespace BatteryMonitoringSystem
             }
         }
 
-        private void ReceivingResponseToRequest(object fromObject)
+        private async void ReceivingResponseToRequest(object fromObject)
         {
-            Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate ()
+            await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)async delegate ()
             {
                 try
                 {
@@ -166,9 +165,16 @@ namespace BatteryMonitoringSystem
                         if (unreadShortMessages != null)
                         {
                             requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
-                            WriteSmsInDb(unreadShortMessages);
+                            operationProgress.Visibility = Visibility.Visible;
+                            dataLoading.Value = 0;
+                            await Task.Run(() => WriteSmsInDb(unreadShortMessages));
+
+                            dataLoading.Value = 0;
                             AddNewMessageToDataTable(unreadShortMessages);
                             customComPort.RemoveMessagesByNumber(unreadShortMessages);
+
+                            await Task.Delay(1500);
+                            operationProgress.Visibility = Visibility.Hidden;
                         }
                     }
                 }
@@ -349,16 +355,23 @@ namespace BatteryMonitoringSystem
                             using (StreamReader streamReader = smsHistoryFile.OpenText())
                             {
                                 List<ShortMessage> listShortMessages = new List<ShortMessage>();
-                                string sms;
+                                string sms, phoneNumber = $"+{smsHistoryFile.Name.Replace(".txt","")}";
                                 while ((sms = streamReader.ReadLine()) != null)
                                 {
-                                    listShortMessages.Add(new ShortMessage($"+{smsHistoryFile.Name.Replace(".txt", "")}", sms));
+                                    listShortMessages.Add(new ShortMessage(phoneNumber, sms));                                    
                                     dataLoading.Value += Convert.ToDouble(stepValue);
                                 }
+                                programStatus.Text = "Чтение файла выполнено.";
+                                dataLoading.Value = 0;
+
+                                await Task.Run(() => WriteSmsInDb(listShortMessages));
+                                programStatus.Text = "Данные помещены в хранилище.";
+                                dataLoading.Value = 0;
 
                                 AddNewMessageToDataTable(listShortMessages);
                                 programStatus.Text = "Файл успешно выгружен в таблицу.";
-                                await Task.Run(() => WriteSmsInDb(listShortMessages));                               
+
+                                await Task.Delay(3000);
                                 operationProgress.Visibility = Visibility.Hidden;
                             }
                         }
@@ -382,6 +395,7 @@ namespace BatteryMonitoringSystem
         {
             List<ShortMessage> oldMessages = new List<ShortMessage>();
             string messageBoxText = $"Запрос по номеру {newMessages[0].Sender} содержит ранее полученные сообщения: ";
+            double stepValue = 100 / (double)newMessages.Count;
             foreach (var msg in newMessages)
             {
                 var messages = new DataTableMessageRepresentation(msg.MessageNumber, msg.Sender, msg.ReceivedDateTime.Date, msg.ReceivedDateTime.ToString("HH:mm:ss"), msg.Message);
@@ -389,7 +403,7 @@ namespace BatteryMonitoringSystem
                 int msgIndex = messagesHistoryView.Items.IndexOf(new ListViewItem() { Content = messages });
                 if (msgIndex == -1)
                 {
-                    messagesHistoryView.Items.Add(new ListViewItem() { Content = messages });    
+                    messagesHistoryView.Items.Add(new ListViewItem() { Content = messages });
                     (messagesHistoryView.Items[messagesHistoryView.Items.Count - 1] as ListViewItem).Background = new SolidColorBrush(Color.FromRgb(252, 65, 80));
                 }
                 else
@@ -397,14 +411,16 @@ namespace BatteryMonitoringSystem
                     messageBoxText += msg.MessageNumber;
                     oldMessages.Add(msg);
                 }
+                dataLoading.Value += stepValue;
             }
 
-            if(oldMessages.Count > 0)
+            if (oldMessages.Count > 0)
                 MessageBox.Show(messageBoxText, "Результат запроса");
         }
 
         private void WriteSmsInDb(List<ShortMessage> listShortMessages)
         {
+            double stepValue = 100 / (double)listShortMessages.Count;
             using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
             {
                 foreach (var msg in listShortMessages)
@@ -412,7 +428,7 @@ namespace BatteryMonitoringSystem
                     var query = context.Informations.Where(info => info.MessageNumber == msg.MessageNumber &&
                         info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber == msg.Sender).ToList();
 
-                    if(query.Count == 0)
+                    if (query.Count == 0)
                     {
                         var infoSource = context.InformationSources.Where(source => source.InternationalCode + source.PhoneNumber == msg.Sender).First();
 
@@ -425,6 +441,11 @@ namespace BatteryMonitoringSystem
                         });
                         context.SaveChanges();
                     }
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        dataLoading.Value += stepValue;
+                    });
                 }
             }
         }
