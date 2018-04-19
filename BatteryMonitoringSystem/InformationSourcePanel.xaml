@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BatteryMonitoringSystem"
              mc:Ignorable="d" Initialized="InformationSourcePanel_Initialized" FontFamily="Sitka Display"
-             Width="350" Loaded="InformationSourcesPanel_Loaded">
+             Width="350">
     <UserControl.Resources>
         <Style x:Key="btnStyle" TargetType="Button">
             <Setter Property="FontWeight" Value="Bold"/>

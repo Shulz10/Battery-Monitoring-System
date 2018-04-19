@@ -38,50 +38,39 @@ namespace BatteryMonitoringSystem
         {
             InformationSourcePanel panel = (InformationSourcePanel)depObj;
             if (!panel.IsPressed && panel.Parent != null)
-            {
+            {                
                 ThicknessAnimation animate = new ThicknessAnimation()
                 {
                     To = new Thickness(-350, 0, 0, 0),
-                    Duration = TimeSpan.FromSeconds(0.75)
+                    Duration = TimeSpan.FromSeconds(0.8)
                 };
                 animate.Completed += (o, s) => { RemoveUserControl(panel); };
                 panel.BeginAnimation(MarginProperty, animate);
             }
+            else if(panel.IsPressed && panel.Parent != null)
+            {
+                var parent = (Panel)LogicalTreeHelper.GetParent(panel);
+                List<UserControl> userControls = parent.Children.OfType<UserControl>().ToList();
+                userControls.Remove(panel);
+                ThicknessAnimation animate = new ThicknessAnimation()
+                {
+                    From = new Thickness(userControls.Count > 0 ? -700 : -350, 0, 0, 0),
+                    To = new Thickness(0, 0, 0, 0),
+                    Duration = TimeSpan.FromSeconds(0.8)
+                };
+                animate.Completed += (o, s) => {
+                    if (userControls.Count > 0)
+                        RemoveUserControl(userControls[0]);
+                };
+                panel.BeginAnimation(MarginProperty, animate);
+            }
         }
 
-        private static void RemoveUserControl(InformationSourcePanel panel)
+        private static void RemoveUserControl(UserControl panel)
         {
             var parent = (Panel)LogicalTreeHelper.GetParent(panel);
             parent.Children.Remove(panel);
-        }
-
-        private void InformationSourcesPanel_Loaded(object sender, RoutedEventArgs e)
-        {
-            ThicknessAnimation animate = new ThicknessAnimation()
-            {
-                From = new Thickness(-700, 0, 0, 0),
-                To = new Thickness(0, 0, 0, 0),
-                Duration = TimeSpan.FromSeconds(1)
-            };
-            animate.Completed += (o, s) => { RemoveOldPanel(); };
-            this.BeginAnimation(MarginProperty, animate);
-        }
-
-        private void RemoveOldPanel()
-        {
-            var parent = (Panel)LogicalTreeHelper.GetParent(this);
-            foreach (var element in parent.Children)
-            {
-                if (element is UserControl)
-                {
-                    if (Grid.GetRow((UserControl)element) == 1 && Grid.GetColumn((UserControl)element) == 1 && ((UserControl)element).Name != this.Name)
-                    {
-                        parent.Children.Remove((UserControl)element);
-                        element.GetType().GetProperty("IsPressed").SetValue(element, false);
-                        break;
-                    }
-                }
-            }
+            panel.GetType().GetProperty("IsPressed").SetValue(panel, false);
         }
 
         private void AddSourceBtn_Click(object sender, RoutedEventArgs e)
@@ -168,7 +157,7 @@ namespace BatteryMonitoringSystem
         {
             using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
             {
-                var phoneNumbers = context.InformationSources.Select(c => new { InternationalCode = c.InternationalCode, PhoneNumber = c.PhoneNumber }).ToList();
+                var phoneNumbers = context.InformationSources.Select(c => new { c.InternationalCode, c.PhoneNumber }).ToList();
 
                 if (phoneNumbers.Count > 0)
                 {

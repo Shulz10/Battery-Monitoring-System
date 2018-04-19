@@ -182,12 +182,12 @@ namespace BatteryMonitoringSystem
         private void OpenListInformationSources(object sender, RoutedEventArgs e)
         {
             if (!informationSourcePanel.IsPressed && !grid.Children.Contains(informationSourcePanel))
-            {
-                ChangeButtonBackgroundColor((sender as Button).Name);
-                informationSourcePanel.IsPressed = true;
+            {            
                 Grid.SetRow(informationSourcePanel, 1);
                 Grid.SetColumn(informationSourcePanel, 1);
-                grid.Children.Add(informationSourcePanel);                
+                grid.Children.Add(informationSourcePanel);
+                ChangeButtonBackgroundColor((sender as Button).Name);
+                informationSourcePanel.IsPressed = true;
             }
             else if(informationSourcePanel.IsPressed)
             {
@@ -199,9 +199,7 @@ namespace BatteryMonitoringSystem
         private void OpenListManualModeParameters(object sender, RoutedEventArgs e)
         {
             if (!manualModePanel.IsPressed && !grid.Children.Contains(manualModePanel))
-            {
-                ChangeButtonBackgroundColor((sender as Button).Name);
-                manualModePanel.IsPressed = true;
+            {                
                 if (choseInformationSource != null)
                 {
                     manualModePanel.choosePhoneNumber.Items.Clear();
@@ -213,6 +211,8 @@ namespace BatteryMonitoringSystem
                 Grid.SetRow(manualModePanel, 1);
                 Grid.SetColumn(manualModePanel, 1);
                 grid.Children.Add(manualModePanel);
+                ChangeButtonBackgroundColor((sender as Button).Name);
+                manualModePanel.IsPressed = true;
             }
             else if(manualModePanel.IsPressed)
             {
@@ -244,10 +244,7 @@ namespace BatteryMonitoringSystem
         private void OpenListCurrentRequests(object sender, RoutedEventArgs e)
         {
             if(!currentRequestsPanel.IsPressed && !grid.Children.Contains(currentRequestsPanel))
-            {
-                ChangeButtonBackgroundColor((sender as Button).Name);
-                currentRequestsPanel.IsPressed = true;
-
+            {               
                 currentRequestsPanel.listRequests.Children.RemoveRange(1, currentRequestsPanel.listRequests.Children.Count - 1);
                 if (requests.Count == 0)
                     currentRequestsPanel.NoRequest();
@@ -265,6 +262,8 @@ namespace BatteryMonitoringSystem
                 Grid.SetRow(currentRequestsPanel, 1);
                 Grid.SetColumn(currentRequestsPanel, 1);
                 grid.Children.Add(currentRequestsPanel);
+                ChangeButtonBackgroundColor((sender as Button).Name);
+                currentRequestsPanel.IsPressed = true;
             }
             else if(currentRequestsPanel.IsPressed)
             {
