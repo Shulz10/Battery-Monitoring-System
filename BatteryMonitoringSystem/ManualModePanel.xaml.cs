@@ -68,6 +68,8 @@ namespace BatteryMonitoringSystem
             panel.GetType().GetProperty("IsPressed").SetValue(panel, false);
         }
 
+        private void ManualModeParametersPanel_Loaded(object sender, RoutedEventArgs e) => choosePhoneNumber.SelectionChanged += ChoosePhoneNumber_SelectionChanged;
+
         public string FormSmsCommand(CommandCode commandCode)
         {
             string command = "";
