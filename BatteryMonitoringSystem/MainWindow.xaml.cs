@@ -181,15 +181,15 @@ namespace BatteryMonitoringSystem
 
         private void OpenListInformationSources(object sender, RoutedEventArgs e)
         {
-            if (!informationSourcePanel.IsPressed)
+            if (!informationSourcePanel.IsPressed && !grid.Children.Contains(informationSourcePanel))
             {
                 ChangeButtonBackgroundColor((sender as Button).Name);
                 informationSourcePanel.IsPressed = true;
                 Grid.SetRow(informationSourcePanel, 1);
                 Grid.SetColumn(informationSourcePanel, 1);
-                grid.Children.Add(informationSourcePanel);
+                grid.Children.Add(informationSourcePanel);                
             }
-            else
+            else if(informationSourcePanel.IsPressed)
             {
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 informationSourcePanel.IsPressed = false;
@@ -198,7 +198,7 @@ namespace BatteryMonitoringSystem
 
         private void OpenListManualModeParameters(object sender, RoutedEventArgs e)
         {
-            if (!manualModePanel.IsPressed)
+            if (!manualModePanel.IsPressed && !grid.Children.Contains(manualModePanel))
             {
                 ChangeButtonBackgroundColor((sender as Button).Name);
                 manualModePanel.IsPressed = true;
@@ -214,7 +214,7 @@ namespace BatteryMonitoringSystem
                 Grid.SetColumn(manualModePanel, 1);
                 grid.Children.Add(manualModePanel);
             }
-            else
+            else if(manualModePanel.IsPressed)
             {
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 manualModePanel.IsPressed = false;
@@ -243,7 +243,7 @@ namespace BatteryMonitoringSystem
 
         private void OpenListCurrentRequests(object sender, RoutedEventArgs e)
         {
-            if(!currentRequestsPanel.IsPressed)
+            if(!currentRequestsPanel.IsPressed && !grid.Children.Contains(currentRequestsPanel))
             {
                 ChangeButtonBackgroundColor((sender as Button).Name);
                 currentRequestsPanel.IsPressed = true;
@@ -266,7 +266,7 @@ namespace BatteryMonitoringSystem
                 Grid.SetColumn(currentRequestsPanel, 1);
                 grid.Children.Add(currentRequestsPanel);
             }
-            else
+            else if(currentRequestsPanel.IsPressed)
             {
                 (sender as Button).Background = new SolidColorBrush(Color.FromRgb(182, 182, 182));
                 currentRequestsPanel.IsPressed = false;
