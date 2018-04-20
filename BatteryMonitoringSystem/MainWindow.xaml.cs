@@ -59,7 +59,7 @@ namespace BatteryMonitoringSystem
                     customComPort.OpenComPort();
                     programStatus.Text = $"Подключение установлено по порту {customComPort.CustomSerialPort.PortName}";
                 }
-              
+
                 customComPort.EnterSimCardPin(ref gsmUserPin);
                 programStatus.Text = $"PIN введён верно";
                 Task.Delay(3000).Wait();
@@ -70,7 +70,7 @@ namespace BatteryMonitoringSystem
                 programStatus.Text = $"Инициализация хранилища сообщений выполнена";
             }
             catch (Exception ex)
-            {
+            {                
                 throw ex;
             }
         }
@@ -244,6 +244,7 @@ namespace BatteryMonitoringSystem
                     programStatus.Text = "Подключение не установлено. Проверьте соединение с GSM модемом.";
                 }
                 else programStatus.Text = ex.Message;
+                customComPort = null;
             }
         }
 

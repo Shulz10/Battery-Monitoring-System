@@ -44,11 +44,10 @@ namespace BatteryMonitoringSystem.Models
                 customSerialPort.WriteTimeout = 500;
 
                 customSerialPort.Encoding = Encoding.GetEncoding("windows-1251");
-                customSerialPort.PortName = GetComPortName();
 
                 customSerialPort.DataReceived += SerialPort_DataReceived;
 
-                customSerialPort.Open();
+                EstablishConnectionToComPort();               
             }
             catch(Exception error)
             {
@@ -56,14 +55,14 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
-        private string GetComPortName()
+        private void EstablishConnectionToComPort()
         {
             List<string> availableComPorts = new List<string>();
             foreach (string name in SerialPort.GetPortNames())
                 availableComPorts.Add(name);
             try
             {
-                if (availableComPorts.Count > 1)
+                if (availableComPorts.Count != 0)
                 {
                     foreach (var name in availableComPorts)
                     {
@@ -72,21 +71,18 @@ namespace BatteryMonitoringSystem.Models
                             customSerialPort.PortName = name;
                             customSerialPort.Open();
                             if (ExecuteCommand("AT", 300, "GSM модем не подключен.").Contains("OK"))
-                            {
-                                CloseComPort();
-                                return name;
-                            }
-                            else CloseComPort();
+                                return;
+                            else customSerialPort.Close();
                         }
                     }
                     throw new ApplicationException("GSM модем не подключен.");
                 }
-                else if (availableComPorts.Count == 0)
+                else
                     throw new ApplicationException("Отсутствуют соединения по COM-портам.");
-                else return availableComPorts[0];
             }
             catch(Exception ex)
             {
+                if (customSerialPort.IsOpen) CloseComPort();
                 throw ex;
             }
         }
@@ -98,7 +94,7 @@ namespace BatteryMonitoringSystem.Models
             {
                 customSerialPort.Close();
                 customSerialPort.DataReceived -= SerialPort_DataReceived;
-                customSerialPort = null;
+                comPort = null;
             }
             catch(Exception ex)
             {
@@ -174,7 +170,7 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand("AT+CPIN?", 300, "");
+                ExecuteCommand("AT+CPIN?", 300, "SIM карта не вставлена.");
                 if (PIN == "")
                 {
                     InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
