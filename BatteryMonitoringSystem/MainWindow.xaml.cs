@@ -30,7 +30,6 @@ namespace BatteryMonitoringSystem
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         private DispatcherTimer updateDiffRequestTime;
-        private DispatcherTimer updateStatisticsByReceivedMessage;
 
         private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
@@ -162,9 +161,10 @@ namespace BatteryMonitoringSystem
                         unreadShortMessages = customComPort.ReadSMS();
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
 
-                        if (unreadShortMessages != null)
+                    if (unreadShortMessages != null && unreadShortMessages.Count > 0)
                         {
                             requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
+
                             operationProgress.Visibility = Visibility.Visible;
                             dataLoading.Value = 0;
                             await Task.Run(() => WriteSmsInDb(unreadShortMessages));
@@ -172,6 +172,9 @@ namespace BatteryMonitoringSystem
                             dataLoading.Value = 0;
                             AddNewMessageToDataTable(unreadShortMessages);
                             customComPort.RemoveMessagesByNumber(unreadShortMessages);
+
+                            if (currentRequestsPanel.IsPressed)
+                                UpdateStatisticsByReceivedMessage(phoneNumber, requests[phoneNumber]);
 
                             await Task.Delay(1500);
                             operationProgress.Visibility = Visibility.Hidden;
@@ -285,11 +288,6 @@ namespace BatteryMonitoringSystem
             updateDiffRequestTime.Interval = TimeSpan.FromSeconds(1);
             updateDiffRequestTime.Tick += new EventHandler(UpdateDiffRequestTime);
             updateDiffRequestTime.Start();
-
-            updateStatisticsByReceivedMessage = new DispatcherTimer();
-            updateStatisticsByReceivedMessage.Interval = TimeSpan.FromSeconds(25);
-            updateStatisticsByReceivedMessage.Tick += new EventHandler(UpdateStatisticsByReceivedMessage);
-            updateStatisticsByReceivedMessage.Start();
         }
 
         private void CloseRequestBtn_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -312,27 +310,22 @@ namespace BatteryMonitoringSystem
                 r.Value.Item1.OnPropertyChanged("DiffRequestTime");
         }
 
-        private async void UpdateStatisticsByReceivedMessage(object sender, EventArgs e)
+        private async void UpdateStatisticsByReceivedMessage(string phoneNumber, Tuple<SmsRequest,Timer> request)
         {
-            List<string> listPhoneNumbers = new List<string>();
-            foreach (var r in requests)
-            {
-                r.Value.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
-                if (r.Value.Item1.ReceivedMessagesNumber == r.Value.Item1.MessagesNumber)
-                    listPhoneNumbers.Add(r.Key);
-            }
+            request.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
 
-            if(listPhoneNumbers.Count > 0)
+            if (request.Item1.ReceivedMessagesNumber == request.Item1.MessagesNumber)
             {
                 await Task.Delay(10000);
-                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate () { foreach (var numb in listPhoneNumbers) StopReceivedData(numb); });
-            }
+                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate () {
+                    StopReceivedData(phoneNumber);
+                });
 
-            if (requests.Count == 0)
-            {
-                currentRequestsPanel.NoRequest();
-                updateStatisticsByReceivedMessage.Stop();
-                updateDiffRequestTime.Stop();
+                if (requests.Count == 0)
+                {
+                    currentRequestsPanel.NoRequest();
+                    updateDiffRequestTime.Stop();
+                }
             }
         }
 

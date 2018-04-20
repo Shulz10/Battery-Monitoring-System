@@ -127,7 +127,7 @@ namespace BatteryMonitoringSystem.Models
 
                 string input = ReadResponse(responseTimeout);
                 if ((input.Length == 0) || (!input.EndsWith("\r\n> ") && !input.Contains("\r\nOK\r\n")))
-                    throw new ApplicationException(errorMessage);
+                     throw new ApplicationException(errorMessage);
                 return input;
             }
             catch (Exception ex)
