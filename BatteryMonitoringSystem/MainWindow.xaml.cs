@@ -154,12 +154,15 @@ namespace BatteryMonitoringSystem
             {
                 try
                 {
+                    List<ShortMessage> allReceivedMessages = new List<ShortMessage>();
                     string phoneNumber = fromObject as string;
                     customComPort.GetCountSMSMessagesInStorage(out int messageCount);
                     if (messageCount > 0)
                     {
                         unreadShortMessages = customComPort.ReadSMS();
-                        unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
+                        allReceivedMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
+                        unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber && Convert.ToInt32(msg.MessageNumber) >= requests[phoneNumber].Item1.StartMessageIndex && 
+                            Convert.ToInt32(msg.MessageNumber) <= requests[phoneNumber].Item1.LastMessageIndex);
 
                     if (unreadShortMessages != null && unreadShortMessages.Count > 0)
                         {
@@ -171,7 +174,7 @@ namespace BatteryMonitoringSystem
 
                             dataLoading.Value = 0;
                             AddNewMessageToDataTable(unreadShortMessages);
-                            customComPort.RemoveMessagesByNumber(unreadShortMessages);
+                            customComPort.RemoveMessagesByNumber(allReceivedMessages);
 
                             if (currentRequestsPanel.IsPressed)
                                 UpdateStatisticsByReceivedMessage(phoneNumber, requests[phoneNumber]);
