@@ -30,6 +30,7 @@ namespace BatteryMonitoringSystem
         private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         private DispatcherTimer updateDiffRequestTime;
+        private DispatcherTimer cleanMessagesStorageTimer;
 
         private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
@@ -43,7 +44,7 @@ namespace BatteryMonitoringSystem
             manualModePanel.getRangeMessageBtn.Click += SendRequest;
             manualModePanel.getLastMessageBtn.Click += SendRequest;
             currentRequestsPanel = new CurrentRequestsPanel();
-
+            
             gsmUserPin = "";
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
         }       
@@ -164,7 +165,7 @@ namespace BatteryMonitoringSystem
                         unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber && Convert.ToInt32(msg.MessageNumber) >= requests[phoneNumber].Item1.StartMessageIndex && 
                             Convert.ToInt32(msg.MessageNumber) <= requests[phoneNumber].Item1.LastMessageIndex);
 
-                    if (unreadShortMessages != null && unreadShortMessages.Count > 0)
+                        if (unreadShortMessages != null && unreadShortMessages.Count > 0)
                         {
                             requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
 
@@ -624,6 +625,38 @@ namespace BatteryMonitoringSystem
         {
             if (sender is ListViewItem item)
                 item.Background = Brushes.White;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            cleanMessagesStorageTimer = new DispatcherTimer();
+            cleanMessagesStorageTimer.Interval = TimeSpan.FromMinutes(10);
+            cleanMessagesStorageTimer.Tick += new EventHandler(CleanMessageStorage);
+            cleanMessagesStorageTimer.Start();
+        }
+
+        private void CleanMessageStorage(object sender, EventArgs e)
+        {
+            try
+            {
+                if (customComPort != null)
+                {
+                    customComPort.GetCountSMSMessagesInStorage(out int messageCount);
+                    if (messageCount > 0)
+                    {
+                        List<ShortMessage> listShortMessages = customComPort.ReadSMS();
+                        foreach (var msg in listShortMessages)
+                        {
+                            if (!requests.ContainsKey(msg.Sender))
+                                customComPort.RemoveMessagesByNumber(msg);
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                programStatus.Text = ex.Message;
+            }
         }
     }
 }

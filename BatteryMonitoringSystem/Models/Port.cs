@@ -294,6 +294,20 @@ namespace BatteryMonitoringSystem.Models
             }
         }
 
+        public void RemoveMessagesByNumber(ShortMessage message)
+        {
+            try
+            {
+                ExecuteCommand("AT", 300, "No phone connected.");
+                ExecuteCommand("AT+CMGF=1", 500, "Failed to set message format.");
+                ExecuteCommand($"AT+CMGD={message.MessageNumberInModemStorage},0", 300, "Failed to delete message from GSM-modem storage.");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         //Parse Messages
         public List<ShortMessage> ParseMessages(string input)
         {
