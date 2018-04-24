@@ -13,7 +13,7 @@ namespace BatteryMonitoringSystem.Models
             : base(new SQLiteConnection() { ConnectionString = connectionString }, true)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
-                throw new ArgumentNullException("connectionStringName", "The name of a standard connection string in the config file must be supplied");
+                throw new ArgumentNullException("connectionStringName", "Имя стандартной строки подключения должно быть указано в файле конфигурации.");
 
             AppDomain.CurrentDomain.SetData("DataDirectory", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
             Database.Connection.ConnectionString = connectionString;

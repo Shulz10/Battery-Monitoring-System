@@ -19,7 +19,7 @@ namespace BatteryMonitoringSystem
                 DialogResult = true;
                 Close();
             }
-            else MessageBox.Show("Введите PIN!", "Error");
+            else MessageBox.Show("Введите PIN!", "Ошибка");
         }
     }
 }

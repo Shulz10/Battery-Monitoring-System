@@ -91,15 +91,15 @@ namespace BatteryMonitoringSystem
                     foreach (var infoSource in choseInformationSource)
                     {
                         var query = (from source in context.InformationSources
-                                     join info in context.Informations on source.InformationSourceID equals info.InformationSourceID
-                                     where source.InternationalCode == infoSource.Substring(0, 6) && source.PhoneNumber == infoSource.Substring(6)
-                                     select new ShortMessage
-                                     {
-                                         MessageNumber = info.MessageNumber,
-                                         ReceivedDateTime = info.MessageDateTime,
-                                         Message = info.Message,
-                                         Sender = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
-                                     }).ToList();
+                                        join info in context.Informations on source.InformationSourceID equals info.InformationSourceID
+                                        where source.InternationalCode == infoSource.Substring(0, 6) && source.PhoneNumber == infoSource.Substring(6)
+                                        select new ShortMessage
+                                        {
+                                            MessageNumber = info.MessageNumber,
+                                            ReceivedDateTime = info.MessageDateTime,
+                                            Message = info.Message,
+                                            Sender = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
+                                        }).ToList();
 
 
 
@@ -110,7 +110,7 @@ namespace BatteryMonitoringSystem
                     }
                 }
                 else
-                    MessageBox.Show("None of the information sources is selected!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Ни один из источников информации не выбран!", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -136,7 +136,7 @@ namespace BatteryMonitoringSystem
 
                         (manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled = false;
 
-                        programStatus.Text = "Сообщение отправлено успешно";//Message has sent successfully
+                        programStatus.Text = "Сообщение отправлено успешно";
 
                         manualModePanel.ChangeButtonsAvailability();
                     }
