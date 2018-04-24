@@ -629,6 +629,14 @@ namespace BatteryMonitoringSystem
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            if (Properties.Settings.Default.WindowState == WindowState.Normal)
+            {
+                this.Width = Properties.Settings.Default.WindowSize.Width;
+                this.Height = Properties.Settings.Default.WindowSize.Height;
+            }
+            else if (Properties.Settings.Default.WindowState == WindowState.Maximized)
+                this.WindowState = WindowState.Maximized;
+
             cleanMessagesStorageTimer = new DispatcherTimer();
             cleanMessagesStorageTimer.Interval = TimeSpan.FromMinutes(10);
             cleanMessagesStorageTimer.Tick += new EventHandler(CleanMessageStorage);
@@ -657,6 +665,13 @@ namespace BatteryMonitoringSystem
             {
                 programStatus.Text = ex.Message;
             }
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Properties.Settings.Default.WindowSize = new System.Drawing.Size(Convert.ToInt32(Application.Current.MainWindow.ActualWidth), Convert.ToInt32(Application.Current.MainWindow.ActualHeight));
+            Properties.Settings.Default.WindowState = this.WindowState;
+            Properties.Settings.Default.Save();
         }
     }
 }
