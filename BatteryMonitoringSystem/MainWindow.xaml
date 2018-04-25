@@ -43,13 +43,13 @@
             </Button>
             <Separator Margin="0"/>
         </StackPanel>
-        <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" Loaded="MessagesHistoryView_Loaded" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" SizeChanged="MessagesHistoryView_SizeChanged" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}" Width="50"/>
-                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=Sender}" Width="160"/>
-                    <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=ReceivedDate, StringFormat=dd.MM.yyyy }" Width="130"/>
-                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=ReceivedTime}" Width="130"/>
+                    <GridViewColumn Header="№" DisplayMemberBinding="{Binding Path=MessageNumber}"/>
+                    <GridViewColumn Header="Номер телефона" DisplayMemberBinding="{Binding Path=Sender}"/>
+                    <GridViewColumn Header="Дата" DisplayMemberBinding="{Binding Path=ReceivedDate, StringFormat=dd.MM.yyyy }"/>
+                    <GridViewColumn Header="Время" DisplayMemberBinding="{Binding Path=ReceivedTime}"/>
                     <GridViewColumn Header="Сообщение" DisplayMemberBinding="{Binding Path=Message}"/>
                 </GridView>
             </ListView.View>

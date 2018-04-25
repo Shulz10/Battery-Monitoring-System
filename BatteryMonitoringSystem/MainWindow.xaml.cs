@@ -27,7 +27,6 @@ namespace BatteryMonitoringSystem
         private List<ShortMessage> unreadShortMessages;
         private int maxMessageCountInStorage;
         private string gsmUserPin;
-        private double messagesHistoryListViewActualWidth;
         private Excel.Application excelApp;
         private DispatcherTimer updateDiffRequestTime;
         private DispatcherTimer cleanMessagesStorageTimer;
@@ -512,38 +511,17 @@ namespace BatteryMonitoringSystem
                         ItemsPresenter presenter = scroller.Content as ItemsPresenter;
                         if(presenter != null)
                         {
-                            for(int i = 0; i < view.Columns.Count; i++)
-                            {
-                                double percentWidth = view.Columns[i].Width * 100 / messagesHistoryListViewActualWidth;
-                                view.Columns[i].Width = percentWidth * presenter.ActualWidth / 100;
-                            }
-                            messagesHistoryListViewActualWidth = presenter.ActualWidth;
+                            view.Columns[0].Width = 5 * presenter.ActualWidth / 100;
+                            view.Columns[1].Width = 15 * presenter.ActualWidth / 100;
+                            view.Columns[2].Width = 12 * presenter.ActualWidth / 100;
+                            view.Columns[3].Width = 12 * presenter.ActualWidth / 100;
+                            view.Columns[4].Width = presenter.ActualWidth;
+                            for (int i = 0; i < view.Columns.Count; i++)
+                                if (i != 4) view.Columns[4].Width -= view.Columns[i].ActualWidth;
                         }
                     }
                 }                  
             }
-        }
-
-        private void MessagesHistoryView_Loaded(object sender, RoutedEventArgs e)
-        {
-            GridView view = this.messagesHistoryView.View as GridView;
-            Decorator border = VisualTreeHelper.GetChild(this.messagesHistoryView, 0) as Decorator;
-            if (border != null)
-            {
-                ScrollViewer scroller = border.Child as ScrollViewer;
-                if (scroller != null)
-                {
-                    ItemsPresenter presenter = scroller.Content as ItemsPresenter;
-                    if (presenter != null)
-                    {
-                        view.Columns[4].Width = presenter.ActualWidth;
-                        for (int i = 0; i < view.Columns.Count; i++)
-                            if (i != 4) view.Columns[4].Width -= view.Columns[i].ActualWidth;
-                    }
-                    messagesHistoryListViewActualWidth = presenter.ActualWidth;
-                }
-            }
-            this.messagesHistoryView.SizeChanged += MessagesHistoryView_SizeChanged;
         }
 
         private Task<double> GetStepValueForProgressOperation(string filePath)
