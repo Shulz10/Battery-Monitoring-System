@@ -130,8 +130,11 @@ namespace BatteryMonitoringSystem
                     {
                         customComPort.SendMessage(phoneNumber, command);
 
-                        requests.Add(phoneNumber, Tuple.Create(new SmsRequest(manualModePanel.fromTxt.Text, manualModePanel.beforeTxt.Text, DateTime.Now, countExpectedMessages > 1 ? CommandCode.RangeMessage : CommandCode.LastMessage),
-                            new Timer(ReceivingResponseToRequest, phoneNumber, 0, 60000)));
+                        requests.Add(phoneNumber, Tuple.Create(new SmsRequest(command == phoneNumber + "0" ? "" : manualModePanel.fromTxt.Text,
+                            command == phoneNumber + "0" ? "" : manualModePanel.beforeTxt.Text,
+                            DateTime.Now,
+                            command == phoneNumber + "0" ? CommandCode.LastMessage : CommandCode.RangeMessage),
+                            new Timer(ReceivingResponseToRequest, phoneNumber, 60000, 60000)));
 
                         (manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled = false;
 
@@ -161,9 +164,14 @@ namespace BatteryMonitoringSystem
                     {
                         unreadShortMessages = customComPort.ReadSMS();
                         allReceivedMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
-                        unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber && Convert.ToInt32(msg.MessageNumber) >= requests[phoneNumber].Item1.StartMessageIndex && 
-                            Convert.ToInt32(msg.MessageNumber) <= requests[phoneNumber].Item1.LastMessageIndex);
-
+                        if (requests[phoneNumber].Item1.StartMessageIndex == null && requests[phoneNumber].Item1.LastMessageIndex == null)
+                        {
+                            if (allReceivedMessages.Count > 2)
+                                unreadShortMessages = allReceivedMessages.GetRange(allReceivedMessages.Count - 2, 2);
+                            else unreadShortMessages = allReceivedMessages;
+                        }
+                        else unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber && Convert.ToInt32(msg.MessageNumber) >= requests[phoneNumber].Item1.StartMessageIndex &&
+                                Convert.ToInt32(msg.MessageNumber) <= requests[phoneNumber].Item1.LastMessageIndex);
                         if (unreadShortMessages != null && unreadShortMessages.Count > 0)
                         {
                             requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
@@ -299,8 +307,7 @@ namespace BatteryMonitoringSystem
             {
                 var parent = (Panel)LogicalTreeHelper.GetParent(sender as Image);
                 string phoneNumber = (parent.Children[0] as Label).Content.ToString();
-                requests.Remove(phoneNumber);
-                currentRequestsPanel.listRequests.Children.Remove(parent);
+                StopReceivedData(phoneNumber);
                 if (requests.Count == 0)
                     currentRequestsPanel.NoRequest();
                 programStatus.Text = $"Запрос по номеру {phoneNumber} отменён";
@@ -319,7 +326,7 @@ namespace BatteryMonitoringSystem
 
             if (request.Item1.ReceivedMessagesNumber == request.Item1.MessagesNumber)
             {
-                await Task.Delay(10000);
+                await Task.Delay(7000);
                 await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate () {
                     StopReceivedData(phoneNumber);
                 });
@@ -481,6 +488,7 @@ namespace BatteryMonitoringSystem
                 }
             }
 
+            GC.Collect();
             programStatus.Text = $"Прием данных от {byPhoneNumber} завершён";
         }
 
