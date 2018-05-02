@@ -24,7 +24,6 @@ namespace BatteryMonitoringSystem
         private ManualModePanel manualModePanel;
         private CurrentRequestsPanel currentRequestsPanel;
         private List<string> choseInformationSource;
-        private List<ShortMessage> unreadShortMessages;
         private int maxMessageCountInStorage;
         private string gsmUserPin;
         private Excel.Application excelApp;
@@ -161,8 +160,8 @@ namespace BatteryMonitoringSystem
                     string phoneNumber = fromObject as string;
                     customComPort.GetCountSMSMessagesInStorage(out int messageCount);
                     if (messageCount > 0)
-                    {
-                        unreadShortMessages = customComPort.ReadSMS();
+                    {                        
+                        List<ShortMessage> unreadShortMessages = customComPort.ReadSMS();
                         allReceivedMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber);
                         if (requests[phoneNumber].Item1.StartMessageIndex == null && requests[phoneNumber].Item1.LastMessageIndex == null)
                         {
@@ -189,7 +188,7 @@ namespace BatteryMonitoringSystem
 
                             await Task.Delay(1500);
                             operationProgress.Visibility = Visibility.Hidden;
-                        }
+                        }                        
                     }
                 }
                 catch (Exception ex)
