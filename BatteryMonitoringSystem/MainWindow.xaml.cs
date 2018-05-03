@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using BatteryMonitoringSystem.Models;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.ComponentModel;
 
 namespace BatteryMonitoringSystem
 {
@@ -32,6 +33,8 @@ namespace BatteryMonitoringSystem
 
         private Dictionary<string, Tuple<SmsRequest, Timer>> requests;
 
+        DependencyPropertyDescriptor programStatusChangedDp = DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock)); 
+
         public MainWindow()
         {
             InitializeComponent();       
@@ -42,10 +45,20 @@ namespace BatteryMonitoringSystem
             manualModePanel.getRangeMessageBtn.Click += SendRequest;
             manualModePanel.getLastMessageBtn.Click += SendRequest;
             currentRequestsPanel = new CurrentRequestsPanel();
-            
+
+            programStatusChangedDp.AddValueChanged(programStatus, ProgramStatusChanged);
+
             gsmUserPin = "";
             requests = new Dictionary<string, Tuple<SmsRequest, Timer>>();
         }       
+
+        private async void ProgramStatusChanged(object sender, EventArgs e)
+        {
+            string status = programStatus.Text;
+            await Task.Delay(5000);
+            if(status == programStatus.Text)
+                programStatus.Text = "";
+        }
 
         private void ComPortInitialization()
         {
@@ -98,8 +111,6 @@ namespace BatteryMonitoringSystem
                                             Message = info.Message,
                                             Sender = info.InformationSource.InternationalCode + info.InformationSource.PhoneNumber
                                         }).ToList();
-
-
 
                         if (query.Count > 0)
                             AddMessagesFromDb(query);
