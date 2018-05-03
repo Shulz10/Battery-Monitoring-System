@@ -78,47 +78,45 @@ namespace BatteryMonitoringSystem
             int messageCount = messageCountTxt.Text != "" ? Convert.ToInt32(messageCountTxt.Text) : 0;
             string phoneNumber =  (choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString();
 
-            if (phoneNumber.Length == 13 && phoneNumber.StartsWith("+"))
+            switch (commandCode)
             {
-                switch (commandCode)
-                {
-                    case CommandCode.RangeMessage:
+                case CommandCode.RangeMessage:
+                    {
+                        if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
                         {
-                            if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text == "")
+                            command = phoneNumber + "1" + ConvertDecimalNumberToHex(fromN, 8) + "01" + "00000000";
+                            messageCountTxt.Text = "1";
+                            beforeTxt.Text = fromTxt.Text;
+                        }
+                        else
+                        {
+                            if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text == "")
                             {
-                                command = phoneNumber + "1" + ConvertDecimalNumberToHex(fromN, 8) + "01" + "00000000";
-                                messageCountTxt.Text = "1";
-                                beforeTxt.Text = fromTxt.Text;
+                                messageCount = beforeN - fromN + 1;
+                                messageCountTxt.Text = messageCount.ToString();
+                            }
+                            else if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text != "")
+                            {
+                                beforeN = fromN + messageCount;
+                                beforeTxt.Text = beforeN.ToString();
+                            }
+                            else if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text != "")
+                            {
+                                if (beforeN - fromN + 1 != messageCount && messageCount != 1)
+                                    return "Ошибка! Проверьте правильность введенных данных.";
                             }
                             else
-                            {
-                                if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text == "")
-                                {
-                                    messageCount = beforeN - fromN + 1;
-                                    messageCountTxt.Text = messageCount.ToString();
-                                }
-                                else if (fromTxt.Text != "" && beforeTxt.Text == "" && messageCountTxt.Text != "")
-                                {
-                                    beforeN = fromN + messageCount;
-                                    beforeTxt.Text = beforeN.ToString();
-                                }
-                                else if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text != "")
-                                {
-                                    if (beforeN - fromN + 1 != messageCount && messageCount != 1)
-                                        return "Ошибка! Проверьте правильность введенных данных.";
-                                }
+                                return "Ошибка! Проверьте правильность введенных данных.";
 
-                                command = phoneNumber + "2" + ConvertDecimalNumberToHex(fromN, 8) +
-                                    ConvertDecimalNumberToHex(messageCount, 2) + ConvertDecimalNumberToHex(beforeN, 8);
-                            }
-                            break;
+                            command = phoneNumber + "2" + ConvertDecimalNumberToHex(fromN, 8) +
+                                ConvertDecimalNumberToHex(messageCount, 2) + ConvertDecimalNumberToHex(beforeN, 8);
                         }
-                    case CommandCode.LastMessage:
-                        command = phoneNumber + "0";
                         break;
-                }
+                    }
+                case CommandCode.LastMessage:
+                    command = phoneNumber + "0";
+                    break;
             }
-            else return "Ошибка! Проверьте правильность введенных данных.";
 
             return command;
         }

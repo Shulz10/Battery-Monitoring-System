@@ -19,14 +19,14 @@
         <StackPanel Background="#FFFC4150">
             <Label Content="Battery Monitoring System" HorizontalAlignment="Left"  VerticalContentAlignment="Center" VerticalAlignment="Top" FontStyle="Italic" FontSize="12" Foreground="White"/>
         </StackPanel>
-        <Label Content="Номер телефона" FontSize="14" Margin="71,20,0,0"/>
-        <TextBox x:Name="phoneNumber" Height="23" TextWrapping="Wrap" MinWidth="250" Style="{DynamicResource generalPropertiesStyle}" MaxLength="13"/>
         <ComboBox x:Name="operatorsBox" Style="{DynamicResource generalPropertiesStyle}" MinWidth="250" Margin="0,40,0,30" SelectedIndex="0">
-            <ComboBoxItem Visibility="Collapsed" Content="Мобильные операторы"/>
+            <ComboBoxItem Visibility="Collapsed" Content="Выберите мобильного оператора"/>
             <ComboBoxItem Content="MTS"/>
             <ComboBoxItem Content="Velcom"/>
             <ComboBoxItem Content="Life"/>
         </ComboBox>
+        <Label Content="Номер телефона" FontSize="14" Margin="71,0,0,0"/>
+        <TextBox x:Name="phoneNumber" Height="23" TextWrapping="Wrap" MinWidth="250" Style="{DynamicResource generalPropertiesStyle}" MaxLength="13" Margin="0,0,0,30"/>
         <Button x:Name="AddNewPhone" Content="Добавить" MinWidth="100" MinHeight="25" Style="{DynamicResource generalPropertiesStyle}" Click="AddNewPhone_Click" IsDefault="True"/>
     </StackPanel>
 </Window>
