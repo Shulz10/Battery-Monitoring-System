@@ -20,29 +20,31 @@
         <DockPanel Grid.Row="0" Grid.ColumnSpan="3" Background="#FFFC4150">
             <Label DockPanel.Dock="Left" Content="Battery Monitoring System" HorizontalAlignment="Left" Margin="30,0,0,0" Grid.ColumnSpan="2" VerticalContentAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" FontFamily="Sitka Display" FontSize="16" Foreground="White" />
         </DockPanel>
-        <StackPanel x:Name="sideMenuPanel" Grid.Column="0" Grid.Row="1" Background="#FFB6B6B6" Orientation="Vertical" Panel.ZIndex="1">
-            <Separator Margin="0"/>
-            <Button x:Name="sourceInformationBtn" Background="Transparent" BorderThickness="0" ToolTip="Источники информации" Click="OpenListInformationSources">
-                <Image Source="Resources/phone-receiver.png"/>
-            </Button>
-            <Separator Margin="0"/>
-            <Button x:Name="manualModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Ручной режим работы" Click="OpenListManualModeParameters">
-                <Image Source="Resources/handshake.png"/>
-            </Button>
-            <Separator Margin="0"/>
-            <Button x:Name="requestInfoBtn" Background="Transparent" BorderThickness="0" ToolTip="Текущие запросы" Click="OpenListCurrentRequests">
-                <Image Source="Resources/hourglass.png"/>
-            </Button>
-            <Separator Margin="0"/>
-            <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщения из файла" Click="OpenFileOfMessages">
-                <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
-            </Button>
-            <Separator Margin="0"/>
-            <Button x:Name="saveToExcelFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Сохранить историю сообщений в файл" Click="SaveDataToExcelFile">
-                <Image Source="Resources/excel.png"/>
-            </Button>
-            <Separator Margin="0"/>
-        </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" CanContentScroll="True" Grid.Column="0" Grid.Row="1" Panel.ZIndex="1">
+            <StackPanel x:Name="sideMenuPanel" Background="#FFB6B6B6" Orientation="Vertical">
+                <Separator Margin="0"/>
+                <Button x:Name="sourceInformationBtn" Background="Transparent" BorderThickness="0" ToolTip="Источники информации" Click="OpenListInformationSources">
+                    <Image Source="Resources/phone-receiver.png"/>
+                </Button>
+                <Separator Margin="0"/>
+                <Button x:Name="manualModeBtn" Background="Transparent" BorderThickness="0" ToolTip="Ручной режим работы" Click="OpenListManualModeParameters">
+                    <Image Source="Resources/handshake.png"/>
+                </Button>
+                <Separator Margin="0"/>
+                <Button x:Name="requestInfoBtn" Background="Transparent" BorderThickness="0" ToolTip="Текущие запросы" Click="OpenListCurrentRequests">
+                    <Image Source="Resources/hourglass.png"/>
+                </Button>
+                <Separator Margin="0"/>
+                <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщения из файла" Click="OpenFileOfMessages">
+                    <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
+                </Button>
+                <Separator Margin="0"/>
+                <Button x:Name="saveToExcelFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Сохранить историю сообщений в файл" Click="SaveDataToExcelFile">
+                    <Image Source="Resources/excel.png"/>
+                </Button>
+                <Separator Margin="0"/>
+            </StackPanel>
+        </ScrollViewer>
         <ListView x:Name="messagesHistoryView" Grid.Row="1" Grid.Column="2" Margin="40" SizeChanged="MessagesHistoryView_SizeChanged" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <ListView.View>
                 <GridView>

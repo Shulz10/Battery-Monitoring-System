@@ -104,6 +104,7 @@ namespace BatteryMonitoringSystem
                             }
                         };
 
+                        DockPanel.SetDock(checkBox, Dock.Top);
                         sourcePanel.Children.Add(checkBox);
                         chooseSourceBtn.IsEnabled = true;
                     }
@@ -147,6 +148,7 @@ namespace BatteryMonitoringSystem
                         Margin = new Thickness(0, 5, 0, 5)
                     };
 
+                    DockPanel.SetDock(label, Dock.Top);
                     sourcePanel.Children.Add(label);
                     chooseSourceBtn.IsEnabled = false;
                 }
@@ -177,6 +179,7 @@ namespace BatteryMonitoringSystem
                             }
                         };
 
+                        DockPanel.SetDock(checkBox, Dock.Top);
                         sourcePanel.Children.Add(checkBox);
                     }
                 }
@@ -193,6 +196,7 @@ namespace BatteryMonitoringSystem
                         Margin = new Thickness(0, 5, 0, 5)
                     };
 
+                    DockPanel.SetDock(label, Dock.Top);
                     sourcePanel.Children.Add(label);
                     chooseSourceBtn.IsEnabled = false;
                 }

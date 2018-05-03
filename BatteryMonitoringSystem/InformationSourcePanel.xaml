@@ -15,15 +15,17 @@
             <Setter Property="MinWidth" Value="100"/>
         </Style>
     </UserControl.Resources>
-    <StackPanel Orientation="Vertical" Background="#FFECECEC" Panel.ZIndex="1">
-        <Label Content="Номера телефонов:" FontWeight="Bold" FontSize="16" Margin="10,10,0,0"/>
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="sourcePanel" Orientation="Vertical" Margin="10,5,10,0"/>
+    <DockPanel Background="#FFECECEC" Panel.ZIndex="1">
+        <Label Content="Номера телефонов:" FontWeight="Bold" FontSize="16" Margin="10,10,0,0" DockPanel.Dock="Top"/>
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" CanContentScroll="True" DockPanel.Dock="Top">
+            <DockPanel LastChildFill="False">
+                <DockPanel x:Name="sourcePanel" Margin="10,5,10,0" DockPanel.Dock="Top" />
+                <StackPanel Orientation="Horizontal" Margin="10,5,10,0" Height="40" DockPanel.Dock="Top">
+                    <Button x:Name="addSourceBtn" Content="Добавить" Margin="10,10,0,0" Click="AddSourceBtn_Click" Style="{StaticResource btnStyle}"/>
+                    <Button x:Name="chooseSourceBtn" Content="Выбрать" Margin="5,10,0,0" Style="{StaticResource btnStyle}"/>
+                    <Button x:Name="removeSourceBtn" Content="Удалить" Margin="5,10,0,0" Click="RemoveSourceBtn_Click" Style="{StaticResource btnStyle}"/>
+                </StackPanel>
+            </DockPanel>
         </ScrollViewer>
-        <StackPanel Orientation="Horizontal" Margin="10,5,10,0">
-            <Button x:Name="addSourceBtn" Content="Добавить" Margin="10,20,0,0" Click="AddSourceBtn_Click" Style="{StaticResource btnStyle}"/>
-            <Button x:Name="chooseSourceBtn" Content="Выбрать" Margin="5,20,0,0" Style="{StaticResource btnStyle}"/>
-            <Button x:Name="removeSourceBtn" Content="Удалить" Margin="5,20,0,0" Click="RemoveSourceBtn_Click" Style="{StaticResource btnStyle}"/>
-        </StackPanel>
-    </StackPanel>
+    </DockPanel>
 </UserControl>
