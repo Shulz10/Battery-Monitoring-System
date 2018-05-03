@@ -553,45 +553,54 @@ namespace BatteryMonitoringSystem
 
         private void SaveDataToExcelFile(object sender, RoutedEventArgs e)
         {
-            if (choseInformationSource.Count > 0)
+            try
             {
-                Task<Excel.Workbook> createExcelFileTask = new Task<Excel.Workbook>(() => CreateExcelFileAsync());
-                createExcelFileTask.Start();
-                
-                var excelWorkbook = createExcelFileTask.Result;
+                if (choseInformationSource.Count > 0)
+                {
+                    Task<Excel.Workbook> createExcelFileTask = new Task<Excel.Workbook>(() => CreateExcelFileAsync());
+                    createExcelFileTask.Start();
 
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new DispatcherOperationCallback(delegate (object value)
-                {                                          
-                    for (int k = 0; k < choseInformationSource.Count; k++)
+                    var excelWorkbook = createExcelFileTask.Result;
+
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new DispatcherOperationCallback(delegate (object value)
                     {
-                        List<DataTableMessageRepresentation> listShortMessage = new List<DataTableMessageRepresentation>();
-                        foreach (ListViewItem item in messagesHistoryView.Items)
+                        for (int k = 0; k < choseInformationSource.Count; k++)
                         {
-                            var msg = (DataTableMessageRepresentation)item.Content;
-                            if (msg.Sender == choseInformationSource[k])
-                                listShortMessage.Add(msg);
+                            List<DataTableMessageRepresentation> listShortMessage = new List<DataTableMessageRepresentation>();
+                            foreach (ListViewItem item in messagesHistoryView.Items)
+                            {
+                                var msg = (DataTableMessageRepresentation)item.Content;
+                                if (msg.Sender == choseInformationSource[k])
+                                    listShortMessage.Add(msg);
+                            }
+
+
+                            var rowIndex = 1;
+                            foreach (var row in listShortMessage)
+                            {
+                                rowIndex++;
+                                excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "A"] = row.MessageNumber;
+                                excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "B"] = row.ReceivedDate;
+                                excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "C"] = row.ReceivedTime;
+                                excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "D"] = row.Message;
+                            }
+
                         }
 
+                        excelWorkbook.SaveAs(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("dd-MM-yyyy H-mm-ss") + ".xlsx", Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                            Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
 
-                        var rowIndex = 1;
-                        foreach (var row in listShortMessage)
-                        {
-                            rowIndex++;
-                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "A"] = row.MessageNumber;
-                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "B"] = row.ReceivedDate;
-                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "C"] = row.ReceivedTime;
-                            excelApp.Worksheets[choseInformationSource[k]].Cells[rowIndex, "D"] = row.Message;
-                        }
-
-                    }
-
-                    excelWorkbook.SaveAs(Environment.CurrentDirectory + "\\" + DateTime.Now.ToString("dd-MM-yyyy H-mm-ss") + ".xlsx", Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                        Type.Missing, Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-
-                    programStatus.Text = "Excel файл успешно создан!";
-                    excelApp.Quit();
-                    return null;
-                }), excelWorkbook);
+                        programStatus.Text = "Excel файл успешно создан!";
+                        excelApp.Quit();
+                        return null;
+                    }), excelWorkbook);
+                }
+            }
+            catch(Exception ex)
+            {
+                if (ex is NullReferenceException)
+                    programStatus.Text = "Ошибка! Для загрузки информации в файл необходимо выбрать номера телефонов в меню \"Источники информации\".";
+                else programStatus.Text = ex.Message;
             }
         }
 
