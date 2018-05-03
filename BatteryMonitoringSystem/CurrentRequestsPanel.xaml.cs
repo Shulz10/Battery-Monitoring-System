@@ -99,6 +99,7 @@ namespace BatteryMonitoringSystem
             panel.Children.Add(requestTimeLabel);
             panel.Children.Add(closeRequestBtn);
 
+            DockPanel.SetDock(panel, Dock.Top);
             listRequests.Children.Add(panel);
         }
 
@@ -115,6 +116,7 @@ namespace BatteryMonitoringSystem
                 Margin = new Thickness(0, 5, 0, 5)
             };
 
+            DockPanel.SetDock(label, Dock.Top);
             listRequests.Children.Add(label);
         }
     }

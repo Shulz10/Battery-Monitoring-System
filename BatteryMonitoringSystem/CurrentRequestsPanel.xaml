@@ -16,7 +16,10 @@
             <Setter Property="Control.FontSize" Value="14"/>
         </Style>
     </UserControl.Resources>
-    <StackPanel x:Name="listRequests" Orientation="Vertical" Background="#FFECECEC">
-        <Label Content="Выполняемые запросы:" FontWeight="Bold" FontSize="16" Margin="10,10,0,0" Style="{StaticResource baseControlStyle}"/>
-    </StackPanel>
+    <DockPanel Background="#FFECECEC">
+        <Label Content="Выполняемые запросы:" FontWeight="Bold" FontSize="16" Margin="10,10,0,0" Style="{StaticResource baseControlStyle}" DockPanel.Dock="Top"/>
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" CanContentScroll="True" DockPanel.Dock="Top">
+            <DockPanel x:Name="listRequests" LastChildFill="False"/>
+        </ScrollViewer>
+    </DockPanel>
 </UserControl>

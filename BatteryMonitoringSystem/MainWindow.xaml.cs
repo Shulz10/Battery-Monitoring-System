@@ -276,11 +276,12 @@ namespace BatteryMonitoringSystem
         {
             if(!currentRequestsPanel.IsPressed && !grid.Children.Contains(currentRequestsPanel))
             {               
-                currentRequestsPanel.listRequests.Children.RemoveRange(1, currentRequestsPanel.listRequests.Children.Count - 1);
-                if (requests.Count == 0)
+                if (requests.Count == 0 && currentRequestsPanel.listRequests.Children.Count == 0)
                     currentRequestsPanel.NoRequest();
-                else
+                else if (requests.Count > 0)
                 {
+                    currentRequestsPanel.listRequests.Children.RemoveRange(0, currentRequestsPanel.listRequests.Children.Count);
+
                     foreach (var r in requests)
                         currentRequestsPanel.AddNewRequest(r.Key, r.Value.Item1);
 
