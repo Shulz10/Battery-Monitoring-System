@@ -131,6 +131,16 @@ namespace BatteryMonitoringSystem.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        public static System.Drawing.Icon toon_xp_icons_v1c_icon_141 {
+            get {
+                object obj = ResourceManager.GetObject("toon_xp_icons_v1c_icon_141", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         public static System.Drawing.Bitmap user {
