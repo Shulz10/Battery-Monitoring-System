@@ -350,16 +350,14 @@ namespace BatteryMonitoringSystem
         }
 
         private async void OpenFileOfMessages(object sender, RoutedEventArgs e)
-        {
-            operationProgress.Visibility = Visibility.Visible;
-            dataLoading.Value = 0;
-            
+        {                   
             await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)async delegate()
             {
-                IEnumerable<DriveInfo> drivesInfo = DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Removable);
-                foreach (var drive in drivesInfo)
+                IEnumerable<DriveInfo> drivesInfo = DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Removable &&
+                    drive.IsReady && Directory.GetFiles(string.Format(@"{0}", drive.Name), "375*").Length > 0);
+                if (drivesInfo.Count() > 0)
                 {
-                    if (drive.IsReady)
+                    foreach (var drive in drivesInfo)
                     {
                         string filePath = Directory.GetFiles(string.Format(@"{0}", drive.Name), "375*").FirstOrDefault();
                         if (filePath != null)
@@ -368,11 +366,14 @@ namespace BatteryMonitoringSystem
                             double stepValue = await GetStepValueForProgressOperation(filePath);
                             using (StreamReader streamReader = smsHistoryFile.OpenText())
                             {
+                                operationProgress.Visibility = Visibility.Visible;
+                                dataLoading.Value = 0;
+
                                 List<ShortMessage> listShortMessages = new List<ShortMessage>();
-                                string sms, phoneNumber = $"+{smsHistoryFile.Name.Replace(".txt","")}";
+                                string sms, phoneNumber = $"+{smsHistoryFile.Name.Replace(".txt", "")}";
                                 while ((sms = streamReader.ReadLine()) != null)
                                 {
-                                    listShortMessages.Add(new ShortMessage(phoneNumber, sms));                                    
+                                    listShortMessages.Add(new ShortMessage(phoneNumber, sms));
                                     dataLoading.Value += Convert.ToDouble(stepValue);
                                 }
                                 programStatus.Text = "Чтение файла выполнено.";
@@ -391,6 +392,8 @@ namespace BatteryMonitoringSystem
                         }
                     }
                 }
+                else
+                    programStatus.Text = "Флешка не найдена. Вставьте флешку и повторите выгрузку данных снова.";
             });            
         }
 
