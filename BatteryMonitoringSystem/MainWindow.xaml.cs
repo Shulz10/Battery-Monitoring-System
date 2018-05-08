@@ -204,18 +204,24 @@ namespace BatteryMonitoringSystem
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    programStatus.Text = ex.Message;
                 }
             });
         }
 
         private void OpenListInformationSources(object sender, RoutedEventArgs e)
         {
-            if (!informationSourcePanel.IsPressed && !grid.Children.Contains(informationSourcePanel))
-            {            
-                Grid.SetRow(informationSourcePanel, 1);
-                Grid.SetColumn(informationSourcePanel, 1);
-                grid.Children.Add(informationSourcePanel);
+            if (!informationSourcePanel.IsPressed)
+            {
+                if (!grid.Children.Contains(informationSourcePanel))
+                {
+                    Grid.SetRow(informationSourcePanel, 1);
+                    Grid.SetColumn(informationSourcePanel, 1);
+                    grid.Children.Add(informationSourcePanel);
+                }
+                else if (grid.Children.Contains(informationSourcePanel))
+                    informationSourcePanel.BeginAnimation(MarginProperty, null);
+
                 ChangeButtonBackgroundColor((sender as Button).Name);
                 informationSourcePanel.IsPressed = true;
             }
@@ -412,28 +418,35 @@ namespace BatteryMonitoringSystem
         private void AddNewMessageToDataTable(List<ShortMessage> newMessages)
         {
             List<ShortMessage> oldMessages = new List<ShortMessage>();
-            string messageBoxText = $"Запрос по номеру {newMessages[0].Sender} содержит ранее полученные сообщения: ";
+            string messageBoxText = $"Запрос по номеру {newMessages[0].Sender} содержит ранее полученные сообщения:";
             double stepValue = 100 / (double)newMessages.Count;
             foreach (var msg in newMessages)
             {
+                bool fContains = false;
                 var messages = new DataTableMessageRepresentation(msg.MessageNumber, msg.Sender, msg.ReceivedDateTime.Date, msg.ReceivedDateTime.ToString("HH:mm:ss"), msg.Message);
+                foreach (ListViewItem item in messagesHistoryView.Items)
+                {
+                    var currentItem = item.Content as DataTableMessageRepresentation;
+                    if (currentItem.MessageNumber == messages.MessageNumber && currentItem.Sender == messages.Sender
+                        && currentItem.ReceivedDate == messages.ReceivedDate && currentItem.ReceivedTime == messages.ReceivedTime)
+                    {
+                        messageBoxText += $" {msg.MessageNumber},";
+                        oldMessages.Add(msg);
+                        fContains = true;
+                        break;
+                    }
+                }
 
-                int msgIndex = messagesHistoryView.Items.IndexOf(new ListViewItem() { Content = messages });
-                if (msgIndex == -1)
+                if (!fContains)
                 {
                     messagesHistoryView.Items.Add(new ListViewItem() { Content = messages });
                     (messagesHistoryView.Items[messagesHistoryView.Items.Count - 1] as ListViewItem).Background = new SolidColorBrush(Color.FromRgb(252, 65, 80));
-                }
-                else
-                {
-                    messageBoxText += msg.MessageNumber;
-                    oldMessages.Add(msg);
                 }
                 dataLoading.Value += stepValue;
             }
 
             if (oldMessages.Count > 0)
-                MessageBox.Show(messageBoxText, "Результат запроса");
+                MessageBox.Show(messageBoxText.TrimEnd(','), "Результат запроса");
         }
 
         private void WriteSmsInDb(List<ShortMessage> listShortMessages)

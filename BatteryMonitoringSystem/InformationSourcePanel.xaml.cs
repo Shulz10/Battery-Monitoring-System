@@ -16,6 +16,9 @@ namespace BatteryMonitoringSystem
     public partial class InformationSourcePanel : UserControl
     {
         ListView MessageTable;
+        static ThicknessAnimation animate;
+        public static AnimationClock animationClock { get; set; }
+
         public InformationSourcePanel(ListView messageTable)
         {
             InitializeComponent();
@@ -38,38 +41,43 @@ namespace BatteryMonitoringSystem
         {
             InformationSourcePanel panel = (InformationSourcePanel)depObj;
             if (!panel.IsPressed && panel.Parent != null)
-            {                
-                ThicknessAnimation animate = new ThicknessAnimation()
+            {               
+                animate = new ThicknessAnimation()
                 {
+                    From = animationClock != null ? (Thickness)animate.GetCurrentValue(animate.From, animate.To, animationClock) : new Thickness(0, 0, 0, 0),
                     To = new Thickness(-350, 0, 0, 0),
-                    Duration = TimeSpan.FromSeconds(0.8)
+                    Duration = TimeSpan.FromSeconds(0.8),
                 };
-                animate.Completed += (o, s) => { RemoveUserControl(panel); };
+                animationClock = animate.CreateClock();
+                animate.Completed += (o, s) => {
+                    if(!panel.IsPressed)
+                        RemoveUserControl((Panel)LogicalTreeHelper.GetParent(panel), panel);
+                };
                 panel.BeginAnimation(MarginProperty, animate);
             }
             else if(panel.IsPressed && panel.Parent != null)
             {
                 var parent = (Panel)LogicalTreeHelper.GetParent(panel);
                 List<UserControl> userControls = parent.Children.OfType<UserControl>().ToList();
-                userControls.Remove(panel);
-                ThicknessAnimation animate = new ThicknessAnimation()
+                animate = new ThicknessAnimation()
                 {
-                    From = new Thickness(userControls.Count > 0 ? -700 : -350, 0, 0, 0),
+                    From = animationClock != null ? (Thickness)animate.GetCurrentValue(animate.From, animate.To, animationClock) : userControls.Count == 1 ? new Thickness(-350, 0, 0, 0) : new Thickness(-700, 0, 0, 0),
                     To = new Thickness(0, 0, 0, 0),
-                    Duration = TimeSpan.FromSeconds(0.8)
+                    Duration = TimeSpan.FromSeconds(userControls.Count > 1 ? 1 : 0.8),
                 };
+                animationClock = animate.CreateClock();
                 animate.Completed += (o, s) => {
-                    if (userControls.Count > 0)
-                        RemoveUserControl(userControls[0]);
+                    if (userControls.Count > 1)
+                        RemoveUserControl(parent, userControls[0]);
                 };
                 panel.BeginAnimation(MarginProperty, animate);
             }
         }
 
-        private static void RemoveUserControl(UserControl panel)
+        private static void RemoveUserControl(Panel parent, UserControl panel)
         {
-            var parent = (Panel)LogicalTreeHelper.GetParent(panel);
             parent.Children.Remove(panel);
+            panel.GetType().GetProperty("animationClock").SetValue(panel, null);
             panel.GetType().GetProperty("IsPressed").SetValue(panel, false);
         }
 

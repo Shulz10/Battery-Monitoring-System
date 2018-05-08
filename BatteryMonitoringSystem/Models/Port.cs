@@ -195,7 +195,7 @@ namespace BatteryMonitoringSystem.Models
                 ExecuteCommand("AT", 300, "GSM модем не подключен.");
                 ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.");
                 ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Не удалось принять номер телефона.");
-                ExecuteCommand(message + char.ConvertFromUtf32(26), 3000, "Не удалось отправить сообщение.");
+                ExecuteCommand(message + char.ConvertFromUtf32(26), 5000, "Не удалось отправить сообщение.");
             }
             catch(Exception ex)
             {
