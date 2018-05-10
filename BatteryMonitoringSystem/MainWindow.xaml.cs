@@ -138,7 +138,7 @@ namespace BatteryMonitoringSystem
 
                     if (requests.Values.Sum(n => n.Item1.MessagesNumber - n.Item1.ReceivedMessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
                     {
-                        customComPort.SendMessage(phoneNumber, command);
+                        //customComPort.SendMessage(phoneNumber, command);
 
                         requests.Add(phoneNumber, Tuple.Create(new SmsRequest(command == phoneNumber + "0" ? "" : manualModePanel.fromTxt.Text,
                             command == phoneNumber + "0" ? "" : manualModePanel.beforeTxt.Text,
@@ -261,10 +261,17 @@ namespace BatteryMonitoringSystem
         {
             try
             {
-                if(customComPort == null)
+                if (customComPort == null || !customComPort.CustomSerialPort.IsOpen)
                     ComPortInitialization();
+                else
+                {
+                    string response = customComPort.ExecuteCommand("AT+CPIN?", 300, "Ошибка подключения к устройству");
+                    if (response.Contains("SIM PIN"))
+                        customComPort.EnterSimCardPin(ref gsmUserPin);                   
+                }
+
                 GetListMessage((manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).Content.ToString(),
-                    manualModePanel.FormSmsCommand((sender as Button).Name == "getLastMessageBtn" ? CommandCode.LastMessage : CommandCode.RangeMessage));
+                        manualModePanel.FormSmsCommand((sender as Button).Name == "getLastMessageBtn" ? CommandCode.LastMessage : CommandCode.RangeMessage));
             }
             catch(Exception ex)
             {
@@ -275,6 +282,7 @@ namespace BatteryMonitoringSystem
                 }
                 else programStatus.Text = ex.Message;
                 customComPort = null;
+                gsmUserPin = "";
             }
         }
 

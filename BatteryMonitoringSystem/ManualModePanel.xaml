@@ -38,7 +38,7 @@
             </ComboBox>
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
                 <Button x:Name="getLastMessageBtn" Content="Последнее сообщение" Margin="10,20,0,0" HorizontalAlignment="Center" FontWeight="Bold" FontSize="16" MinHeight="30" IsEnabled="False" Style="{StaticResource baseControlStyle}"/>
-                <Button x:Name="getRangeMessageBtn" Content="Диапозон сообщений" Margin="10,20,0,0" HorizontalAlignment="Center" FontWeight="Bold" FontSize="16" MinHeight="30" IsEnabled="False" Style="{StaticResource baseControlStyle}"/>
+                <Button x:Name="getRangeMessageBtn" Content="Диапазон сообщений" Margin="10,20,0,0" HorizontalAlignment="Center" FontWeight="Bold" FontSize="16" MinHeight="30" IsEnabled="False" Style="{StaticResource baseControlStyle}"/>
             </StackPanel>
         </DockPanel>
     </ScrollViewer>

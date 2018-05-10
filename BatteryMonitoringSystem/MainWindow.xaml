@@ -35,7 +35,7 @@
                     <Image Source="Resources/hourglass.png"/>
                 </Button>
                 <Separator Margin="0"/>
-                <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщения из файла" Click="OpenFileOfMessages">
+                <Button x:Name="loadFileBtn" Background="Transparent" BorderThickness="0" ToolTip="Загрузить историю сообщений из файла" Click="OpenFileOfMessages">
                     <Image Source="Resources/Designbolts-Free-Multimedia-Memory-Card.png"/>
                 </Button>
                 <Separator Margin="0"/>
