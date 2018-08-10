@@ -66,13 +66,20 @@ namespace BatteryMonitoringSystem.Models
                 {
                     foreach (var name in availableComPorts)
                     {
-                        if (!customSerialPort.IsOpen)
+                        try
                         {
-                            customSerialPort.PortName = name;
-                            customSerialPort.Open();
-                            if (ExecuteCommand("AT", 300, "GSM модем не подключен.").Contains("OK"))
-                                return;
-                            else customSerialPort.Close();
+                            if (!customSerialPort.IsOpen)
+                            {
+                                customSerialPort.PortName = name;
+                                customSerialPort.Open();
+                                if (ExecuteCommand("AT", 300, "GSM модем не подключен.").Contains("OK"))
+                                    return;
+                               else customSerialPort.Close();
+                            }
+                        }
+                        catch {
+                            customSerialPort.Close();
+                            continue;
                         }
                     }
                     throw new ApplicationException("GSM модем не подключен.");
@@ -82,7 +89,8 @@ namespace BatteryMonitoringSystem.Models
             }
             catch(Exception ex)
             {
-                if (customSerialPort.IsOpen) CloseComPort();
+                if(customSerialPort.IsOpen)
+                    CloseComPort();
                 throw ex;
             }
         }
@@ -127,7 +135,7 @@ namespace BatteryMonitoringSystem.Models
 
                 string input = ReadResponse(responseTimeout);
                 if ((input.Length == 0) || (!input.EndsWith("\r\n> ") && !input.Contains("\r\nOK\r\n")))
-                     throw new ApplicationException(errorMessage);
+                    throw new ApplicationException(errorMessage);
                 return input;
             }
             catch (Exception ex)

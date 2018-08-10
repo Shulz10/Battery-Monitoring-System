@@ -138,7 +138,7 @@ namespace BatteryMonitoringSystem
 
                     if (requests.Values.Sum(n => n.Item1.MessagesNumber - n.Item1.ReceivedMessagesNumber) + countExpectedMessages * 2 <= maxMessageCountInStorage && requests.Count <= 5)
                     {
-                        //customComPort.SendMessage(phoneNumber, command);
+                        customComPort.SendMessage(phoneNumber, command);
 
                         requests.Add(phoneNumber, Tuple.Create(new SmsRequest(command == phoneNumber + "0" ? "" : manualModePanel.fromTxt.Text,
                             command == phoneNumber + "0" ? "" : manualModePanel.beforeTxt.Text,
