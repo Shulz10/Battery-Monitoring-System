@@ -91,30 +91,36 @@ namespace BatteryMonitoringSystem
             {
                 using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
                 {
-                    var infoSource = (from sources in context.InformationSources select new { sources.InternationalCode, sources.PhoneNumber }).ToList().Last();
+                    var infoSource = context.InformationSources.Where(s => s.IsEnable == true).ToList();
 
                     if (infoSource != null)
                     {
-                        if(sourcePanel.Children.OfType<CheckBox>().ToList().Count == 0)
+                        if (sourcePanel.Children.OfType<CheckBox>().ToList().Count == 0)
                             sourcePanel.Children.Remove(sourcePanel.Children.OfType<Label>().First());
 
-                        CheckBox checkBox = new CheckBox()
+                        foreach (var source in infoSource)
                         {
-                            FlowDirection = FlowDirection.RightToLeft,
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            Margin = new Thickness(0, 5, 0, 5),
-                            FontSize = 14,
-                            Content = new TextBlock()
+                            if (sourcePanel.Children.OfType<CheckBox>().ToList().Find(checkBox => (checkBox.Content as TextBlock).Text == source.InternationalCode + source.PhoneNumber) == null)
                             {
-                                FlowDirection = FlowDirection.LeftToRight,
-                                Text = infoSource.InternationalCode + infoSource.PhoneNumber,
-                                Margin = new Thickness(100, 0, 0, 0)
-                            }
-                        };
+                                CheckBox checkBox = new CheckBox()
+                                {
+                                    FlowDirection = FlowDirection.RightToLeft,
+                                    HorizontalAlignment = HorizontalAlignment.Center,
+                                    Margin = new Thickness(0, 5, 0, 5),
+                                    FontSize = 14,
+                                    Content = new TextBlock()
+                                    {
+                                        FlowDirection = FlowDirection.LeftToRight,
+                                        Text = source.InternationalCode + source.PhoneNumber,
+                                        Margin = new Thickness(100, 0, 0, 0)
+                                    }
+                                };
 
-                        DockPanel.SetDock(checkBox, Dock.Top);
-                        sourcePanel.Children.Add(checkBox);
-                        chooseSourceBtn.IsEnabled = true;
+                                DockPanel.SetDock(checkBox, Dock.Top);
+                                sourcePanel.Children.Add(checkBox);
+                                chooseSourceBtn.IsEnabled = true;
+                            }
+                        }
                     }
                 }
             }
@@ -130,11 +136,8 @@ namespace BatteryMonitoringSystem
                     if (source.IsChecked ?? false)
                     {
                         string phone = (source.Content as TextBlock).Text;
-                        var query = from s in context.InformationSources
-                                    where s.InternationalCode == phone.Substring(0, 6)
-                                    && s.PhoneNumber == phone.Substring(6)
-                                    select s;
-                        context.InformationSources.RemoveRange(query);
+                        var informationSource = context.InformationSources.Where(s => s.InternationalCode == phone.Substring(0, 6) && s.PhoneNumber == phone.Substring(6)).First();
+                        informationSource.IsEnable = false;
                         context.SaveChanges();
                         checkBoxes.Add(source);                       
                     }
@@ -167,7 +170,7 @@ namespace BatteryMonitoringSystem
         {
             using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
             {
-                var phoneNumbers = context.InformationSources.Select(c => new { c.InternationalCode, c.PhoneNumber }).ToList();
+                var phoneNumbers = context.InformationSources.Where(s => s.IsEnable).Select(c => new { c.InternationalCode, c.PhoneNumber }).ToList();
 
                 if (phoneNumbers.Count > 0)
                 {

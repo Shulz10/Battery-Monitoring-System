@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace BatteryMonitoringSystem
 {
@@ -25,23 +26,28 @@ namespace BatteryMonitoringSystem
                 {
                     using (SystemDbContext context = new SystemDbContext(ConfigurationManager.ConnectionStrings["BatteryMonitoringSystemDb"].ConnectionString))
                     {
-                        var query = context.InformationSources.Where(p => p.InternationalCode == phoneNumber.Text.Substring(0, 6) &&
-                            p.PhoneNumber == phoneNumber.Text.Substring(6)).ToList();
-                        if (query.Count == 0)
+                        var informationSource = context.InformationSources.Where(p => p.InternationalCode == phoneNumber.Text.Substring(0, 6) &&
+                            p.PhoneNumber == phoneNumber.Text.Substring(6)).FirstOrDefault();
+                        if (informationSource == null)
                         {
                             context.InformationSources.Add(new InformationSource
                             {
                                 InternationalCode = phoneNumber.Text.Substring(0, 6),
                                 PhoneNumber = phoneNumber.Text.Substring(6),
-                                Operator = operatorsBox.Text
+                                Operator = operatorsBox.Text,
+                                IsEnable = true
                             });
-                            context.SaveChanges();
-
-                            DialogResult = true;
-                            Close();
+                            context.SaveChanges();                            
                         }
-                        else
-                            MessageBox.Show("Введеный номер уже имеется в списке доступных контактов.","Внимание");
+                        else if(informationSource.IsEnable == false)
+                        {
+                            informationSource.IsEnable = true;
+                            context.SaveChanges();
+                        }
+                        else MessageBox.Show("Введеный номер уже имеется в списке доступных контактов.","Внимание");
+
+                        DialogResult = true;
+                        Close();
                     }                    
                 }
                 else

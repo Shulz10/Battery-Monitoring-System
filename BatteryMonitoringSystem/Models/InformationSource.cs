@@ -14,6 +14,7 @@ namespace BatteryMonitoringSystem.Models
         private string phoneOperator;
         private string internationalCode;
         private string phoneNumber;
+        private bool isEnable;
 
         [Key]
         [Autoincrement]
@@ -58,6 +59,17 @@ namespace BatteryMonitoringSystem.Models
             {
                 phoneNumber = value;
                 OnPropertyChanged("PhoneNumber");
+            }
+        }
+
+        [Required]
+        public bool IsEnable
+        {
+            get { return isEnable; }
+            set
+            {
+                isEnable = value;
+                OnPropertyChanged("IsEnable");
             }
         }
 
