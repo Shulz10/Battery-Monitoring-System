@@ -199,6 +199,7 @@ namespace BatteryMonitoringSystem
                             if (unreadShortMessages.Count > 0)
                             {
                                 requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
+                                customComPort.RemoveMessagesByNumber(allReceivedMessages);
 
                                 operationProgress.Visibility = Visibility.Visible;
                                 dataLoading.Value = 0;
@@ -206,7 +207,6 @@ namespace BatteryMonitoringSystem
 
                                 dataLoading.Value = 0;
                                 AddNewMessageToDataTable(unreadShortMessages);
-                                customComPort.RemoveMessagesByNumber(allReceivedMessages);
 
                                 UpdateStatisticsByReceivedMessage(phoneNumber, requests[phoneNumber]);
 
