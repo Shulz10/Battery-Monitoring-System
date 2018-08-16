@@ -115,6 +115,7 @@ namespace BatteryMonitoringSystem
         {
             Label label = new Label()
             {
+                Name = "RequestsCount",
                 Content = "Список запросов пуст!",
                 FontFamily = new FontFamily("Sitka Display"),
                 FontStyle = FontStyles.Italic,
@@ -125,7 +126,8 @@ namespace BatteryMonitoringSystem
             };
 
             DockPanel.SetDock(label, Dock.Top);
-            listRequests.Children.Add(label);
+            if(listRequests.Children.Count == 0)
+                listRequests.Children.Add(label);
         }
     }
 }

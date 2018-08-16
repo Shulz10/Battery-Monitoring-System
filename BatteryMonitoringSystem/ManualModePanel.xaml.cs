@@ -110,7 +110,7 @@ namespace BatteryMonitoringSystem
                             }
                             else if (fromTxt.Text != "" && beforeTxt.Text != "" && messageCountTxt.Text != "")
                             {
-                                if (beforeN - fromN + 1 != messageCount && messageCount != 1)
+                                if (beforeN - fromN + 1 != messageCount)
                                     return "Ошибка! Проверьте правильность введенных данных.";
                             }
                             else

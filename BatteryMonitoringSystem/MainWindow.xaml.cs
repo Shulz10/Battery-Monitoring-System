@@ -144,7 +144,7 @@ namespace BatteryMonitoringSystem
                             command == phoneNumber + "0" ? "" : manualModePanel.beforeTxt.Text,
                             DateTime.Now,
                             command == phoneNumber + "0" ? CommandCode.LastMessage : CommandCode.RangeMessage),
-                            new Timer(ReceivingResponseToRequest, phoneNumber, 60000, 60000)));
+                            new Timer(ReceivingResponseToRequest, phoneNumber, 25000, 25000)));
 
                         (manualModePanel.choosePhoneNumber.SelectedItem as ComboBoxItem).IsEnabled = false;
 
@@ -180,25 +180,39 @@ namespace BatteryMonitoringSystem
                                 unreadShortMessages = allReceivedMessages.GetRange(allReceivedMessages.Count - 2, 2);
                             else unreadShortMessages = allReceivedMessages;
                         }
-                        else unreadShortMessages = unreadShortMessages.FindAll(msg => msg.Sender == phoneNumber && Convert.ToInt32(msg.MessageNumber) >= requests[phoneNumber].Item1.StartMessageIndex &&
-                                Convert.ToInt32(msg.MessageNumber) <= requests[phoneNumber].Item1.LastMessageIndex);
+                        else unreadShortMessages = allReceivedMessages;
                         if (unreadShortMessages != null && unreadShortMessages.Count > 0)
                         {
-                            requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
+                            var errorShortMessages = unreadShortMessages.FindAll(msg => msg.Message.Contains("ERROR"));
+                            if (errorShortMessages.Count > 0)
+                            {
+                                string errorMessage = "";
+                                foreach (var msg in errorShortMessages)
+                                {
+                                    errorMessage += errorMessage.Contains(msg.Message.Trim('\0')) ? "" : msg.Message.Trim('\0') + "  ";
+                                }
+                                programStatus.Text = errorMessage;
+                                customComPort.RemoveMessagesByNumber(errorShortMessages);
+                                unreadShortMessages.RemoveAll(msg => msg.Message.Contains("ERROR"));
+                            }
 
-                            operationProgress.Visibility = Visibility.Visible;
-                            dataLoading.Value = 0;
-                            await Task.Run(() => WriteSmsInDb(unreadShortMessages));
+                            if (unreadShortMessages.Count > 0)
+                            {
+                                requests[phoneNumber].Item1.ReceivedMessagesNumber += unreadShortMessages.Count;
 
-                            dataLoading.Value = 0;
-                            AddNewMessageToDataTable(unreadShortMessages);
-                            customComPort.RemoveMessagesByNumber(allReceivedMessages);
+                                operationProgress.Visibility = Visibility.Visible;
+                                dataLoading.Value = 0;
+                                await Task.Run(() => WriteSmsInDb(unreadShortMessages));
 
-                            if (currentRequestsPanel.IsPressed)
+                                dataLoading.Value = 0;
+                                AddNewMessageToDataTable(unreadShortMessages);
+                                customComPort.RemoveMessagesByNumber(allReceivedMessages);
+
                                 UpdateStatisticsByReceivedMessage(phoneNumber, requests[phoneNumber]);
 
-                            await Task.Delay(1500);
-                            operationProgress.Visibility = Visibility.Hidden;
+                                await Task.Delay(1500);
+                                operationProgress.Visibility = Visibility.Hidden;
+                            }
                         }                        
                     }
                 }
@@ -265,7 +279,7 @@ namespace BatteryMonitoringSystem
                     ComPortInitialization();
                 else
                 {
-                    string response = customComPort.ExecuteCommand("AT+CPIN?", 300, "Ошибка подключения к устройству");
+                    customComPort.ExecuteCommand("AT+CPIN?", 300, "Ошибка подключения к устройству", out string response);
                     if (response.Contains("SIM PIN"))
                         customComPort.EnterSimCardPin(ref gsmUserPin);                   
                 }
@@ -349,7 +363,7 @@ namespace BatteryMonitoringSystem
         {
             request.Item1.OnPropertyChanged("StatisticsByReceivedMessage");
 
-            if (request.Item1.ReceivedMessagesNumber == request.Item1.MessagesNumber)
+            if (request.Item1.ReceivedMessagesNumber >= request.Item1.MessagesNumber)
             {
                 await Task.Delay(7000);
                 await Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate () {
@@ -359,7 +373,8 @@ namespace BatteryMonitoringSystem
                 if (requests.Count == 0)
                 {
                     currentRequestsPanel.NoRequest();
-                    updateDiffRequestTime.Stop();
+                    if(currentRequestsPanel.IsPressed)
+                        updateDiffRequestTime.Stop();
                 }
             }
         }
@@ -492,22 +507,22 @@ namespace BatteryMonitoringSystem
         private void StopReceivedData(string byPhoneNumber)
         {
             //Remove request from dictionary
-            requests[byPhoneNumber].Item2.Change(Timeout.Infinite, Timeout.Infinite);
-            requests[byPhoneNumber].Item2.Dispose();
-            requests.Remove(byPhoneNumber);
+            if (requests.ContainsKey(byPhoneNumber))
+            {
+                requests[byPhoneNumber].Item2.Change(Timeout.Infinite, Timeout.Infinite);
+                requests[byPhoneNumber].Item2.Dispose();
+                requests.Remove(byPhoneNumber);
+            }
 
             //Remove element from CurrentRequestPanel
-            if (currentRequestsPanel.IsPressed)
+            foreach (var child in currentRequestsPanel.listRequests.Children)
             {
-                foreach (var child in currentRequestsPanel.listRequests.Children)
+                if (child is StackPanel panel)
                 {
-                    if (child is StackPanel panel)
+                    if (panel.Name == $"request{byPhoneNumber.TrimStart('+')}")
                     {
-                        if (panel.Name == $"request{byPhoneNumber.TrimStart('+')}")
-                        {
-                            currentRequestsPanel.listRequests.Children.Remove(panel);
-                            break;
-                        }
+                        currentRequestsPanel.listRequests.Children.Remove(panel);
+                        break;
                     }
                 }
             }

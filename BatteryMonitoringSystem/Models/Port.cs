@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.IO.Ports;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace BatteryMonitoringSystem.Models
@@ -72,7 +75,8 @@ namespace BatteryMonitoringSystem.Models
                             {
                                 customSerialPort.PortName = name;
                                 customSerialPort.Open();
-                                if (ExecuteCommand("AT", 300, "GSM модем не подключен.").Contains("OK"))
+                                ExecuteCommand("AT", 300, "GSM модем не подключен.", out string log);
+                                if (log.Contains("OK"))
                                     return;
                                else customSerialPort.Close();
                             }
@@ -124,7 +128,7 @@ namespace BatteryMonitoringSystem.Models
         }
 
         //Execute AT Command
-        public string ExecuteCommand(string command, int responseTimeout, string errorMessage)
+        public void ExecuteCommand(string command, int responseTimeout, string errorMessage, out string log)
         {
             try
             {
@@ -132,11 +136,12 @@ namespace BatteryMonitoringSystem.Models
                 customSerialPort.DiscardInBuffer();
                 receiveNow.Reset();
                 customSerialPort.Write(command + "\r\n");
+                log = DateTime.Now.ToString(new CultureInfo("ru-RU")) + "     " + command + Environment.NewLine;
 
                 string input = ReadResponse(responseTimeout);
+                log += DateTime.Now.ToString(new CultureInfo("ru-RU")) + "     " + input + Environment.NewLine;
                 if ((input.Length == 0) || (!input.EndsWith("\r\n> ") && !input.Contains("\r\nOK\r\n")))
                     throw new ApplicationException(errorMessage);
-                return input;
             }
             catch (Exception ex)
             {
@@ -178,7 +183,7 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand("AT+CPIN?", 300, "SIM карта не вставлена.");
+                ExecuteCommand("AT+CPIN?", 300, "SIM карта не вставлена.", out string log);
                 if (PIN == "")
                 {
                     InputPINWindow inputPINWindow = new InputPINWindow { Owner = Application.Current.MainWindow };
@@ -187,7 +192,7 @@ namespace BatteryMonitoringSystem.Models
                     else
                         throw new ApplicationException("PIN код не введен! Отправка запроса отменена.");
                 }
-                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Неверный PIN.");
+                ExecuteCommand($"AT+CPIN={PIN}\r", 300, "Неверный PIN.", out log);
             }
             catch(Exception ex)
             {
@@ -198,15 +203,22 @@ namespace BatteryMonitoringSystem.Models
         //Send Message
         public void SendMessage(string phoneNumber, string message)
         {
+            string log = "", saveLog = "";
             try
             {
-                ExecuteCommand("AT", 300, "GSM модем не подключен.");
-                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.");
-                ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Не удалось принять номер телефона.");
-                ExecuteCommand(message + char.ConvertFromUtf32(26), 5000, "Не удалось отправить сообщение.");
+                ExecuteCommand("AT", 300, "GSM модем не подключен.", out log);
+                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.", out log);
+                ExecuteCommand($"AT+CMGS=\"{phoneNumber}\"", 500, "Не удалось принять номер телефона.", out log);
+                saveLog = log;
+                ExecuteCommand(message + char.ConvertFromUtf32(26), 5000, "Не удалось отправить сообщение.", out log);
+                log = log.Insert(0, saveLog);
+
+                Task.Run(() => SaveCommunicationWithModemToLog(log));
             }
             catch(Exception ex)
             {
+                log = log.Insert(0, saveLog);
+                Task.Run(() => SaveCommunicationWithModemToLog(log + "     " + ex.Message + Environment.NewLine));
                 throw ex;
             }
         }
@@ -216,10 +228,11 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand("AT", 300, "GSM модем не подключен.");
-                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.");
-                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "Не удалось выбрать место хранения сообщений.");
-                string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Не удалось подсчитать SMS-сообщения.").Split(',');
+                ExecuteCommand("AT", 300, "GSM модем не подключен.", out string log);
+                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.", out log);
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "Не удалось выбрать место хранения сообщений.", out log);
+                ExecuteCommand("AT+CPMS?", 500, "Не удалось подсчитать SMS-сообщения.", out log);
+                string[] parsedReceivedData = log.Split(',');
                 currentMessageCountInStorage = Convert.ToInt32(parsedReceivedData[1]);
                 maxMessageCountInStorage = Convert.ToInt32(parsedReceivedData[2]);
             }
@@ -233,10 +246,11 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand("AT", 300, "GSM модем не подключен.");
-                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.");
-                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "Не удалось выбрать место хранения сообщений.");
-                string[] parsedReceivedData = ExecuteCommand("AT+CPMS?", 500, "Не удалось подсчитать SMS-сообщения.").Split(',');
+                ExecuteCommand("AT", 300, "GSM модем не подключен.", out string log);
+                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.", out log);
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "Не удалось выбрать место хранения сообщений.", out log);
+                ExecuteCommand("AT+CPMS?", 500, "Не удалось подсчитать SMS-сообщения.", out log);
+                string[] parsedReceivedData = log.Split(',');
                 currentMessageCountInStorage = Convert.ToInt32(parsedReceivedData[1]);
             }
             catch (Exception ex)
@@ -251,15 +265,17 @@ namespace BatteryMonitoringSystem.Models
             List<ShortMessage> messages = null;
             try
             {
-                ExecuteCommand("AT", 300, "GSM модем не подключен.");
-                ExecuteCommand("AT+CMGF=1", 300, "Не удалось установить формат сообщения.");
-                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "Не удалось выбрать место хранения сообщений.");
-                ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Не удалось установить набор символов.");
-                ExecuteCommand("AT+CPMS=\"ME\"", 300, "Не удалось выбрать хранилище сообщений.");
-                string response = ExecuteCommand("AT+CMGL=\"ALL\"", 30000, "Не удалось прочитать сообщения.");
+                ExecuteCommand("AT", 300, "GSM модем не подключен.", out string log);
+                ExecuteCommand("AT+CMGF=1", 300, "Не удалось установить формат сообщения.", out log);
+                ExecuteCommand("AT+CPMS=\"ME\",\"ME\",\"ME\"", 500, "Не удалось выбрать место хранения сообщений.", out log);
+                ExecuteCommand("AT+CSCS=\"PCCP936\"", 300, "Не удалось установить набор символов.", out log);
+                ExecuteCommand("AT+CPMS=\"ME\"", 300, "Не удалось выбрать хранилище сообщений.", out log);
+                ExecuteCommand("AT+CMGL=\"ALL\"", 30000, "Не удалось прочитать сообщения.", out log);
+
+                Task.Run(() => SaveCommunicationWithModemToLog(log));
 
                 #region Parse Messages
-                messages = ParseMessages(response);
+                messages = ParseMessages(log);
                 #endregion
             }
             catch (Exception ex)
@@ -278,7 +294,7 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand($"AT+CMGD=1,4", 500, "Не удалось очистить хранилище сообщений.");
+                ExecuteCommand($"AT+CMGD=1,4", 500, "Не удалось очистить хранилище сообщений.", out string log);
             }
             catch(Exception ex)
             {
@@ -291,10 +307,10 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand("AT", 300, "GSM модем не подключен.");
-                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.");
+                ExecuteCommand("AT", 300, "GSM модем не подключен.", out string log);
+                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.", out log);
                 for (int i = 0; i < listReadMessages.Count; i++)
-                    ExecuteCommand($"AT+CMGD={listReadMessages[i].MessageNumberInModemStorage},0", 300, "Не удалось удалить сообщение из хранилища GSM-модема.");
+                    ExecuteCommand($"AT+CMGD={listReadMessages[i].MessageNumberInModemStorage},0", 300, "Не удалось удалить сообщение из хранилища GSM-модема.", out log);
             }
             catch(Exception ex)
             {
@@ -306,9 +322,9 @@ namespace BatteryMonitoringSystem.Models
         {
             try
             {
-                ExecuteCommand("AT", 300, "GSM модем не подключен.");
-                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.");
-                ExecuteCommand($"AT+CMGD={message.MessageNumberInModemStorage},0", 300, "Не удалось удалить сообщение из хранилища GSM-модема.");
+                ExecuteCommand("AT", 300, "GSM модем не подключен.", out string log);
+                ExecuteCommand("AT+CMGF=1", 500, "Не удалось установить формат сообщения.", out log);
+                ExecuteCommand($"AT+CMGD={message.MessageNumberInModemStorage},0", 300, "Не удалось удалить сообщение из хранилища GSM-модема.", out log);
             }
             catch (Exception ex)
             {
@@ -335,6 +351,27 @@ namespace BatteryMonitoringSystem.Models
                 throw ex;
             }
             return messages;
+        }
+
+        //Write Log file
+        public void SaveCommunicationWithModemToLog(string log)
+        {
+            FileStream fStream = null;
+            try
+            {
+                using (fStream = new FileStream("ModemResponse.log", FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, FileOptions.Asynchronous))
+                {
+                    Regex regex = new Regex("(\r\n){2,}");
+                    byte[] array = Encoding.Default.GetBytes(regex.Replace(log, "\r\n") + Environment.NewLine);
+                    fStream.Write(array, 0, array.Length);
+                    fStream.Close();
+                }
+            }
+            finally
+            {
+                if (fStream != null)
+                    fStream.Dispose();
+            }
         }
     }
 }
